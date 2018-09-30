@@ -3,6 +3,7 @@ SRCDIR := src
 
 obj-m := $(TYTON).o
 $(TYTON)-y += $(SRCDIR)/core.o
+$(TYTON)-y += $(SRCDIR)/util.o
 $(TYTON)-y += $(SRCDIR)/syscall_hooks.o
 $(TYTON)-y += $(SRCDIR)/netfilter_hooks.o
 
