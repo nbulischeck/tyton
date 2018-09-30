@@ -4,9 +4,6 @@
 #include "core.h"
 #include "util.h"
 
-static DEFINE_MUTEX(nf_hook_mutex);
-static DEFINE_MUTEX(module_lock);
-
 #define nf_entry_dereference(e) \
 	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
 
@@ -17,14 +14,14 @@ static void search_hooks(const struct nf_hook_entries *e){
 
 	for (i = 0; i < e->num_hook_entries; i++){
 		addr = (unsigned long)e->hooks[i].hook;
-		mutex_lock(&module_lock);
+		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
 		if (mod){
 			printk(KERN_ALERT "[TYTON] Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
 			/* Attempt hidden discovery in the future */
 		}
-		mutex_unlock(&module_lock);
+		mutex_unlock(&module_mutex);
 	}
 }
 
