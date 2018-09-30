@@ -7,6 +7,9 @@ $(TYTON)-y += $(SRCDIR)/util.o
 $(TYTON)-y += $(SRCDIR)/syscall_hooks.o
 $(TYTON)-y += $(SRCDIR)/netfilter_hooks.o
 
+HEADERS := $(PWD)/include
+ccflags-y += -I$(HEADERS)
+
 default: all
 
 all:
