@@ -12,8 +12,13 @@ void analyze_syscalls(void){
 	unsigned long addr;
 	struct module *mod;
 
+	printk(KERN_INFO "[TYTON] Analyzing Netfilter Hooks\n");
+
 	sct = (void *)kallsyms_lookup_name("sys_call_table");
 	ckt = (void *)kallsyms_lookup_name("core_kernel_text");
+
+	if (!sct || !ckt)
+		return;
 
 	for (i = 0; i < NR_syscalls; i++){
 		addr = sct[i];
@@ -28,6 +33,4 @@ void analyze_syscalls(void){
 			mutex_unlock(&module_mutex);
 		}
 	}
-
-	return;
 }
