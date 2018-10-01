@@ -1,4 +1,9 @@
 # Tyton
+
+<p align="center">
+	<img src="https://i.imgur.com/TZFOYvU.jpg" />
+</p>
+
 Kernel-Mode Rootkit Hunter
 
 ## Currently Detects
