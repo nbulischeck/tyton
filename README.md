@@ -1,8 +1,6 @@
 # Tyton
 
-<p align="center">
-	<img src="https://i.imgur.com/TZFOYvU.jpg" />
-</p>
+<img align="left" src="https://raw.githubusercontent.com/nbulischeck/tyton/master/images/tyton-large.jpg?token=ARN9vXUA3y4sqHCkZj_tM1s9Zlb4eW-vks5bu8I4wA%3D%3D">
 
 Kernel-Mode Rootkit Hunter
 
