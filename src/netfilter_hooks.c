@@ -10,6 +10,7 @@
 
 static void search_hooks(const struct nf_hook_entries *e){
 	int i;
+	const char *mod_name;
 	unsigned long addr;
 	struct module *mod;
 
@@ -20,7 +21,8 @@ static void search_hooks(const struct nf_hook_entries *e){
 		if (mod){
 			printk(KERN_ALERT "[TYTON] Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
-			find_hidden_modules(addr);
+			mod_name = find_hidden_module(addr);
+			printk(KERN_ALERT "[TYTON] Module [%s] controls a Netfilter hook.\n", mod_name);
 		}
 		mutex_unlock(&module_mutex);
 	}

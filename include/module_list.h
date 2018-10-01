@@ -4,6 +4,6 @@
 #include <linux/kallsyms.h>
 
 void analyze_modules(void);
-void find_hidden_modules(unsigned long addr);
+const char *find_hidden_module(unsigned long addr);
 
 #endif /* MODULE_LIST_H */

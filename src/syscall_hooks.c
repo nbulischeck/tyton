@@ -3,12 +3,14 @@
 
 #include "core.h"
 #include "util.h"
+#include "module_list.h"
 
 static unsigned long *sct = NULL; /* Syscall Table */
 static int (*ckt)(unsigned long addr); /* Core Kernel Text */
 
 void analyze_syscalls(void){
 	int i;
+	const char *mod_name;
 	unsigned long addr;
 	struct module *mod;
 
@@ -28,7 +30,8 @@ void analyze_syscalls(void){
 			if (mod){
 				printk(KERN_ALERT "[TYTON] Module [%s] hooked syscall [%d].\n", mod->name, i);
 			} else {
-				printk(KERN_ALERT "[TYTON] Syscall [%d] hooked by an unknown module.\n", i);
+				mod_name = find_hidden_module(addr);
+				printk(KERN_ALERT "[TYTON] Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
 			}
 			mutex_unlock(&module_mutex);
 		}
