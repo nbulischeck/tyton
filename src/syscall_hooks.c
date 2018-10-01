@@ -12,7 +12,7 @@ void analyze_syscalls(void){
 	unsigned long addr;
 	struct module *mod;
 
-	printk(KERN_INFO "[TYTON] Analyzing Netfilter Hooks\n");
+	printk(KERN_INFO "[TYTON] Analyzing Syscall Hooks\n");
 
 	sct = (void *)kallsyms_lookup_name("sys_call_table");
 	ckt = (void *)kallsyms_lookup_name("core_kernel_text");

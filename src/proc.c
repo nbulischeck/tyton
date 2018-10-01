@@ -1,7 +1,6 @@
-#include <linux/fs.h>
-
 #include "core.h"
 #include "util.h"
+#include "proc.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
 #include <linux/sched/signal.h>
@@ -9,22 +8,8 @@
 #include <linux/sched.h>
 #endif
 
-struct linux_dirent {
-	unsigned long 	d_ino;
-	unsigned long 	d_off;
-	unsigned short 	d_namlen;
-	unsigned long 	d_type;
-	char 			d_name[];
-};
 
-struct readdir_data {
-	struct dir_context 	ctx;
-	char 				*dirent;
-	size_t 				used;
-	int 				full;
-	int 				entries;
-};
-
+/* https://elixir.bootlin.com/linux/latest/source/fs/nfsd/vfs.c */
 static int filldir_fn(struct dir_context *ctx, const char *name, int namlen, loff_t offset, u64 ino, unsigned int type){
 	struct readdir_data *buf;
 	struct linux_dirent *d;
@@ -45,20 +30,18 @@ static int filldir_fn(struct dir_context *ctx, const char *name, int namlen, lof
 	d->d_type = type;
 	memcpy(d->d_name, name, namlen);
 	buf->used += reclen;
-	buf->entries++;
 
 	return 0;
 }
 
-void analyze_processes(void){
+static void analyze_inodes(void){
 	int size, error;
+	char *buffer;
 	struct file *fp;
-	struct task_struct *task;
 	struct linux_dirent *d;
 	struct readdir_data buf = {
 		.ctx.actor = filldir_fn,
 		.dirent = (void *)__get_free_page(GFP_KERNEL),
-		.entries = 0
 	};
 
 	fp = filp_open("/proc", O_RDONLY, S_IRUSR);
@@ -73,19 +56,20 @@ void analyze_processes(void){
 		buf.full = 0;
 
 		error = iterate_dir(fp, &buf.ctx);
-		if (buf.full)
-			error = 0;
-
-		if (error < 0)
+		if ((!buf.full && (error < 0)) || !buf.used)
 			break;
 
 		size = buf.used;
-
-		if (!size)
-			break;
-
 		d = (struct linux_dirent *)buf.dirent;
+
 		while (size > 0){
+			if (d->d_ino == 0){
+				buffer = kzalloc(d->d_namlen+1, GFP_KERNEL);
+				memcpy(buffer, d->d_name, d->d_namlen);
+				printk(KERN_ALERT "[TYTON] Hidden Process [/proc/%s].\n", buffer);
+				kfree(buffer);
+			}
+
 			reclen = ALIGN(sizeof(*d) + d->d_namlen, sizeof(u64));
 			d = (struct linux_dirent *)((char *)d + reclen);
 			size -= reclen;
@@ -96,10 +80,9 @@ void analyze_processes(void){
 	}
 
 	free_page((unsigned long)(buf.dirent));
+}
 
-	for_each_process(task){
-		printk("[%d] %s\n", task->pid, task->comm);
-	}
-
+void analyze_processes(void){
+	analyze_inodes();
 	return;
 }

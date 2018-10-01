@@ -1,10 +1,12 @@
 #include "core.h"
 #include "proc.h"
+#include "module_list.h"
 #include "syscall_hooks.h"
 #include "netfilter_hooks.h"
 
 static int __init init_mod(void){
 	printk(KERN_INFO "[TYTON] Inserting module\n");
+	analyze_modules();
 	analyze_syscalls();
 	analyze_netfilter();
 	analyze_processes();
