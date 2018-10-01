@@ -3,6 +3,7 @@
 
 #include "core.h"
 #include "util.h"
+#include "module_list.h"
 
 #define nf_entry_dereference(e) \
 	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
@@ -19,7 +20,7 @@ static void search_hooks(const struct nf_hook_entries *e){
 		if (mod){
 			printk(KERN_ALERT "[TYTON] Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
-			/* Attempt hidden discovery in the future */
+			find_hidden_modules(addr);
 		}
 		mutex_unlock(&module_mutex);
 	}
