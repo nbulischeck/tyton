@@ -23,10 +23,11 @@ void analyze_interrupts(void){
 			mutex_lock(&module_mutex);
 			mod = get_module_from_addr(addr);
 			if (mod){
-				SUCCESS("Module [%s] hooked syscall [%d].\n", mod->name, i);
+				SUCCESS("Module [%s] hooked interrupt [%d].\n", mod->name, i);
 			} else {
 				mod_name = find_hidden_module(addr);
-				SUCCESS("Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
+				if (mod_name)
+					SUCCESS("Hidden module [%s] hooked interrupt [%d].\n", mod_name, i);
 			}
 			mutex_unlock(&module_mutex);
 		}
