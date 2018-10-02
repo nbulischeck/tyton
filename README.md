@@ -16,7 +16,7 @@ Linux Kernel-Mode Rootkit Hunter for 4.15+
 
 **Process Fops Hooking**
 
-&nbsp;
+**Interrupt Descriptor Table Hooking**
 
 &nbsp;
 
@@ -35,3 +35,5 @@ Linux Kernel-Mode Rootkit Hunter for 4.15+
 **Zeroed Process Inodes**: Search through `/proc` for all `linux_dirent` structures and examine the inodes to find any set to 0. An inode of 0 is typically ignored from directory listings which makes it a good candidate for rootkits to set directories to in order to hide their files.
 
 **Process Fops Hooking**: Open the `/proc` file pointer and check to see if any file operations (namely `iterate`) point outside the core kernel text section.
+
+**Interrupt Descriptor Table Hooking**: Search through the interrupt descriptor table to see if any entries point outside the core kernel text section. If they do not point within the core kernel text section, it is likely that they have been hooked but to make sure we search all loaded modules to verify this.

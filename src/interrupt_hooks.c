@@ -1,25 +1,23 @@
-#include <asm/asm-offsets.h> /* NR_syscalls */
-
 #include "core.h"
 #include "util.h"
 #include "module_list.h"
 
-extern unsigned long *sct; /* Syscall Table */
+extern unsigned long *idt; /* IDT Table */
 extern int (*ckt)(unsigned long addr); /* Core Kernel Text */
 
-void analyze_syscalls(void){
+void analyze_interrupts(void){
 	int i;
 	const char *mod_name;
 	unsigned long addr;
 	struct module *mod;
 
-	printk(KERN_INFO "[TYTON] Analyzing Syscall Hooks\n");
+	printk(KERN_INFO "[TYTON] Analyzing Interrupt Hooks\n");
 
-	if (!sct || !ckt)
+	if (!idt || !ckt)
 		return;
 
-	for (i = 0; i < NR_syscalls; i++){
-		addr = sct[i];
+	for (i = 0; i < 256; i++){
+		addr = idt[i];
 		if (!ckt(addr)){
 			mutex_lock(&module_mutex);
 			mod = get_module_from_addr(addr);

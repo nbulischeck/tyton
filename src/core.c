@@ -5,7 +5,9 @@
 #include "module_list.h"
 #include "syscall_hooks.h"
 #include "netfilter_hooks.h"
+#include "interrupt_hooks.h"
 
+unsigned long *idt = NULL; /* IDT Table */
 unsigned long *sct = NULL; /* Syscall Table */
 int (*ckt)(unsigned long addr) = NULL; /* Core Kernel Text */
 
@@ -17,6 +19,7 @@ static void execute_analysis(void){
 	analyze_syscalls();
 	analyze_netfilter();
 	analyze_processes();
+	analyze_interrupts();
 }
 
 static void work_func(struct work_struct *dummy){
@@ -34,6 +37,7 @@ void exit_del_workqueue(void){
 }
 
 static void init_kernel_syms(void){
+	idt = (void *)kallsyms_lookup_name("idt_table");
 	sct = (void *)kallsyms_lookup_name("sys_call_table");
 	ckt = (void *)kallsyms_lookup_name("core_kernel_text");
 }

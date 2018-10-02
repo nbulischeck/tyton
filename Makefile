@@ -8,6 +8,7 @@ $(TYTON)-y += $(SRCDIR)/proc.o
 $(TYTON)-y += $(SRCDIR)/module_list.o
 $(TYTON)-y += $(SRCDIR)/syscall_hooks.o
 $(TYTON)-y += $(SRCDIR)/netfilter_hooks.o
+$(TYTON)-y += $(SRCDIR)/interrupt_hooks.o
 
 HEADERS := $(PWD)/include
 ccflags-y += -I$(HEADERS)
