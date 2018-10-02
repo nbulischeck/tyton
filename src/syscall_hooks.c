@@ -28,7 +28,8 @@ void analyze_syscalls(void){
 				SUCCESS("Module [%s] hooked syscall [%d].\n", mod->name, i);
 			} else {
 				mod_name = find_hidden_module(addr);
-				SUCCESS("Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
+				if (mod_name)
+					SUCCESS("Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
 			}
 			mutex_unlock(&module_mutex);
 		}
