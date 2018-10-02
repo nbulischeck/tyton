@@ -1,5 +1,6 @@
 #include "core.h"
 #include "util.h"
+#include "logger.h"
 #include "module_list.h"
 
 #define BETWEEN_PTR(x, y, z) ( \
@@ -44,7 +45,7 @@ void analyze_modules(void){
 	struct kobject *cur, *tmp;
 	struct module_kobject *kobj;
 
-	printk(KERN_INFO "[TYTON] Analyzing Module List\n");
+	GENERIC("Analyzing Module List\n");
 
 	mod_kset = (void *)kallsyms_lookup_name("module_kset");
 	if (!mod_kset)
@@ -59,7 +60,7 @@ void analyze_modules(void){
 		if (kobj && kobj->mod && kobj->mod->name){
 			mutex_lock(&module_mutex);
 			if(!find_module(kobj->mod->name))
-				printk(KERN_ALERT "[TYTON] Module [%s] hidden.\n", kobj->mod->name);
+				SUCCESS("Module [%s] hidden.\n", kobj->mod->name);
 			mutex_unlock(&module_mutex);
 		}
 	}

@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "proc.h"
+#include "logger.h"
 #include "module_list.h"
 #include "syscall_hooks.h"
 #include "netfilter_hooks.h"
@@ -43,14 +44,14 @@ static void init_kernel_syms(void){
 }
 
 static int __init init_mod(void){
-	printk(KERN_INFO "[TYTON] Inserting Module\n");
+	GENERIC("Inserting Module\n");
 	init_kernel_syms();
 	init_del_workqueue();
 	return 0;
 }
 
 static void __exit exit_mod(void){
-	printk(KERN_INFO "[TYTON] Exiting Module\n");
+	GENERIC("Exiting Module\n");
 	exit_del_workqueue();
 }
 

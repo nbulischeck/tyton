@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "util.h"
+#include "logger.h"
 #include "module_list.h"
 
 extern unsigned long *sct; /* Syscall Table */
@@ -13,7 +14,7 @@ void analyze_syscalls(void){
 	unsigned long addr;
 	struct module *mod;
 
-	printk(KERN_INFO "[TYTON] Analyzing Syscall Hooks\n");
+	GENERIC("Analyzing Syscall Hooks\n");
 
 	if (!sct || !ckt)
 		return;
@@ -24,10 +25,10 @@ void analyze_syscalls(void){
 			mutex_lock(&module_mutex);
 			mod = get_module_from_addr(addr);
 			if (mod){
-				printk(KERN_ALERT "[TYTON] Module [%s] hooked syscall [%d].\n", mod->name, i);
+				SUCCESS("Module [%s] hooked syscall [%d].\n", mod->name, i);
 			} else {
 				mod_name = find_hidden_module(addr);
-				printk(KERN_ALERT "[TYTON] Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
+				SUCCESS("Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
 			}
 			mutex_unlock(&module_mutex);
 		}

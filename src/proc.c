@@ -1,6 +1,7 @@
 #include "core.h"
 #include "util.h"
 #include "proc.h"
+#include "logger.h"
 #include "module_list.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
@@ -46,11 +47,11 @@ static void analyze_inodes(void){
 		.dirent = (void *)__get_free_page(GFP_KERNEL),
 	};
 
-	printk(KERN_INFO "[TYTON] Analyzing /proc Inodes\n");
+	GENERIC("Analyzing /proc Inodes\n");
 
 	fp = filp_open("/proc", O_RDONLY, S_IRUSR);
 	if (IS_ERR(fp)){
-		printk(KERN_ERR "[TYTON]: Failed to open /proc.");
+		FAILURE("Failed to open /proc.");
 		return;
 	}
 
@@ -70,7 +71,7 @@ static void analyze_inodes(void){
 			if (d->d_ino == 0){
 				buffer = kzalloc(d->d_namlen+1, GFP_KERNEL);
 				memcpy(buffer, d->d_name, d->d_namlen);
-				printk(KERN_ALERT "[TYTON] Hidden Process [/proc/%s].\n", buffer);
+				SUCCESS("Hidden Process [/proc/%s].\n", buffer);
 				kfree(buffer);
 			}
 
@@ -92,16 +93,16 @@ void analyze_fops(void){
 	struct file *fp;
 	struct module *mod;
 
-	printk(KERN_INFO "[TYTON] Analyzing /proc File Operations\n");
+	GENERIC("Analyzing /proc File Operations\n");
 
 	fp = filp_open("/proc", O_RDONLY, S_IRUSR);
 	if (IS_ERR(fp)){
-		printk(KERN_ERR "[TYTON]: Failed to open /proc.");
+		FAILURE("Failed to open /proc.");
 		return;
 	}
 
 	if (IS_ERR(fp->f_op)){
-		printk(KERN_WARNING "[TYTON]: /proc has no fops.");
+		WARNING("/proc has no fops.");
 		return;
 	}
 
@@ -115,11 +116,11 @@ void analyze_fops(void){
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
 		if (mod){
-			printk(KERN_ALERT "[TYTON] Module [%s] hijacked /proc fops.\n", mod->name);
+			SUCCESS("Module [%s] hijacked /proc fops.\n", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
 			if (mod_name){
-				printk(KERN_ALERT "[TYTON] Module [%s] hijacked /proc fops.\n", mod_name);
+				SUCCESS("Module [%s] hijacked /proc fops.\n", mod_name);
 			}
 		}
 		mutex_unlock(&module_mutex);
