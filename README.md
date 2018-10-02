@@ -2,7 +2,7 @@
 
 <img align="left" src="https://raw.githubusercontent.com/nbulischeck/tyton/master/images/tyton-large.jpg?token=ARN9vXUA3y4sqHCkZj_tM1s9Zlb4eW-vks5bu8I4wA%3D%3D" style="padding: 25px">
 
-Linux Kernel-Mode Rootkit Hunter for 4.15+
+Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+
 
 ## Detected Attacks
 
