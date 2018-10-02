@@ -5,8 +5,8 @@
 #include "util.h"
 #include "module_list.h"
 
-static unsigned long *sct = NULL; /* Syscall Table */
-static int (*ckt)(unsigned long addr); /* Core Kernel Text */
+extern unsigned long *sct; /* Syscall Table */
+extern int (*ckt)(unsigned long addr); /* Core Kernel Text */
 
 void analyze_syscalls(void){
 	int i;
@@ -15,9 +15,6 @@ void analyze_syscalls(void){
 	struct module *mod;
 
 	printk(KERN_INFO "[TYTON] Analyzing Syscall Hooks\n");
-
-	sct = (void *)kallsyms_lookup_name("sys_call_table");
-	ckt = (void *)kallsyms_lookup_name("core_kernel_text");
 
 	if (!sct || !ckt)
 		return;

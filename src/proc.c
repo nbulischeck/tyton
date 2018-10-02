@@ -1,6 +1,7 @@
 #include "core.h"
 #include "util.h"
 #include "proc.h"
+#include "module_list.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
 #include <linux/sched/signal.h>
@@ -8,6 +9,7 @@
 #include <linux/sched.h>
 #endif
 
+extern int (*ckt)(unsigned long addr); /* Core Kernel Text */
 
 /* https://elixir.bootlin.com/linux/latest/source/fs/nfsd/vfs.c */
 static int filldir_fn(struct dir_context *ctx, const char *name, int namlen, loff_t offset, u64 ino, unsigned int type){
@@ -43,6 +45,8 @@ static void analyze_inodes(void){
 		.ctx.actor = filldir_fn,
 		.dirent = (void *)__get_free_page(GFP_KERNEL),
 	};
+
+	printk(KERN_INFO "[TYTON] Analyzing /proc Inodes\n");
 
 	fp = filp_open("/proc", O_RDONLY, S_IRUSR);
 	if (IS_ERR(fp)){
@@ -82,7 +86,48 @@ static void analyze_inodes(void){
 	free_page((unsigned long)(buf.dirent));
 }
 
+void analyze_fops(void){
+	unsigned long addr;
+	const char *mod_name;
+	struct file *fp;
+	struct module *mod;
+
+	printk(KERN_INFO "[TYTON] Analyzing /proc File Operations\n");
+
+	fp = filp_open("/proc", O_RDONLY, S_IRUSR);
+	if (IS_ERR(fp)){
+		printk(KERN_ERR "[TYTON]: Failed to open /proc.");
+		return;
+	}
+
+	if (IS_ERR(fp->f_op)){
+		printk(KERN_WARNING "[TYTON]: /proc has no fops.");
+		return;
+	}
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
+	addr = (unsigned long)fp->f_op->iterate;
+#else
+	addr = (unsigned long)fp->f_op->readdir;
+#endif
+
+	if (!ckt(addr)){
+		mutex_lock(&module_mutex);
+		mod = get_module_from_addr(addr);
+		if (mod){
+			printk(KERN_ALERT "[TYTON] Module [%s] hijacked /proc fops.\n", mod->name);
+		} else {
+			mod_name = find_hidden_module(addr);
+			if (mod_name){
+				printk(KERN_ALERT "[TYTON] Module [%s] hijacked /proc fops.\n", mod_name);
+			}
+		}
+		mutex_unlock(&module_mutex);
+	}
+}
+
 void analyze_processes(void){
+	analyze_fops();
 	analyze_inodes();
 	return;
 }
