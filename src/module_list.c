@@ -25,7 +25,7 @@ const char *find_hidden_module(unsigned long addr){
 		if (!kobj || !kobj->mod)
 			continue;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,5,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,4,0)
 		if (BETWEEN_PTR(addr, kobj->mod->core_layout.base, kobj->mod->core_layout.size)){
 			mod_name = kobj->mod->name;
 		}

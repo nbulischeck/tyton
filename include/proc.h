@@ -3,6 +3,7 @@
 
 #include <linux/fs.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 
 struct linux_dirent {
 	unsigned long 	d_ino;
@@ -13,7 +14,9 @@ struct linux_dirent {
 };
 
 struct readdir_data {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
 	struct dir_context 	ctx;
+#endif
 	char 				*dirent;
 	size_t 				used;
 	int 				full;
