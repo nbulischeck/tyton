@@ -12,7 +12,7 @@ void analyze_interrupts(void){
 	unsigned long addr;
 	struct module *mod;
 
-	GENERIC("Analyzing Interrupt Hooks\n");
+	INFO("Analyzing Interrupt Hooks\n");
 
 	if (!idt || !ckt)
 		return;
@@ -23,11 +23,11 @@ void analyze_interrupts(void){
 			mutex_lock(&module_mutex);
 			mod = get_module_from_addr(addr);
 			if (mod){
-				SUCCESS("Module [%s] hooked interrupt [%d].\n", mod->name, i);
+				ALERT("Module [%s] hooked interrupt [%d].\n", mod->name, i);
 			} else {
 				mod_name = find_hidden_module(addr);
 				if (mod_name)
-					SUCCESS("Hidden module [%s] hooked interrupt [%d].\n", mod_name, i);
+					ALERT("Hidden module [%s] hooked interrupt [%d].\n", mod_name, i);
 			}
 			mutex_unlock(&module_mutex);
 		}

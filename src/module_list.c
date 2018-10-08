@@ -45,7 +45,7 @@ void analyze_modules(void){
 	struct kobject *cur, *tmp;
 	struct module_kobject *kobj;
 
-	GENERIC("Analyzing Module List\n");
+	INFO("Analyzing Module List\n");
 
 	mod_kset = (void *)kallsyms_lookup_name("module_kset");
 	if (!mod_kset)
@@ -60,7 +60,7 @@ void analyze_modules(void){
 		if (kobj && kobj->mod && kobj->mod->name){
 			mutex_lock(&module_mutex);
 			if(!find_module(kobj->mod->name))
-				SUCCESS("Module [%s] hidden.\n", kobj->mod->name);
+				ALERT("Module [%s] hidden.\n", kobj->mod->name);
 			mutex_unlock(&module_mutex);
 		}
 	}

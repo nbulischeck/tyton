@@ -47,11 +47,11 @@ static void analyze_inodes(void){
 		.dirent = (void *)__get_free_page(GFP_KERNEL),
 	};
 
-	GENERIC("Analyzing /proc Inodes\n");
+	INFO("Analyzing /proc Inodes\n");
 
 	fp = filp_open("/proc", O_RDONLY, S_IRUSR);
 	if (IS_ERR(fp)){
-		FAILURE("Failed to open /proc.");
+		ERROR("Failed to open /proc.");
 		return;
 	}
 
@@ -71,7 +71,7 @@ static void analyze_inodes(void){
 			if (d->d_ino == 0){
 				buffer = kzalloc(d->d_namlen+1, GFP_KERNEL);
 				memcpy(buffer, d->d_name, d->d_namlen);
-				SUCCESS("Hidden Process [/proc/%s].\n", buffer);
+				ALERT("Hidden Process [/proc/%s].\n", buffer);
 				kfree(buffer);
 			}
 
@@ -93,11 +93,11 @@ void analyze_fops(void){
 	struct file *fp;
 	struct module *mod;
 
-	GENERIC("Analyzing /proc File Operations\n");
+	INFO("Analyzing /proc File Operations\n");
 
 	fp = filp_open("/proc", O_RDONLY, S_IRUSR);
 	if (IS_ERR(fp)){
-		FAILURE("Failed to open /proc.");
+		ERROR("Failed to open /proc.");
 		return;
 	}
 
@@ -116,11 +116,11 @@ void analyze_fops(void){
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
 		if (mod){
-			SUCCESS("Module [%s] hijacked /proc fops.\n", mod->name);
+			ALERT("Module [%s] hijacked /proc fops.\n", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
 			if (mod_name){
-				SUCCESS("Module [%s] hijacked /proc fops.\n", mod_name);
+				ALERT("Module [%s] hijacked /proc fops.\n", mod_name);
 			}
 		}
 		mutex_unlock(&module_mutex);

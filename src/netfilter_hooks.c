@@ -22,10 +22,10 @@ static void search_hooks(const struct nf_hook_entries *e){
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
 		if (mod){
-			SUCCESS("Module [%s] controls a Netfilter hook.\n", mod->name);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
-			SUCCESS("Module [%s] controls a Netfilter hook.\n", mod_name);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
 		}
 		mutex_unlock(&module_mutex);
 	}
@@ -72,7 +72,7 @@ int analyze_netfilter(void){
 	struct nf_hook_entries *p;
 	struct nf_hook_entries __rcu **pp;
 
-	GENERIC("Analyzing Netfilter Hooks\n");
+	INFO("Analyzing Netfilter Hooks\n");
 
 	for (i = 0; i < NFPROTO_NUMPROTO; i++){
 		for (j = 0; j < NF_MAX_HOOKS; j++){
@@ -104,10 +104,10 @@ static void search_hooks(const struct nf_hook_entries *e){
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
 		if (mod){
-			SUCCESS("Module [%s] controls a Netfilter hook.\n", mod->name);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
-			SUCCESS("Module [%s] controls a Netfilter hook.\n", mod_name);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
 		}
 		mutex_unlock(&module_mutex);
 	}
@@ -128,7 +128,7 @@ int analyze_netfilter(void){
 	struct nf_hook_entries *p;
 	struct nf_hook_entries __rcu **pp;
 
-	GENERIC("Analyzing Netfilter Hooks\n");
+	INFO("Analyzing Netfilter Hooks\n");
 
 	for (i = 0; i < NFPROTO_NUMPROTO; i++){
 		for (j = 0; j < NF_MAX_HOOKS; j++){
@@ -160,10 +160,10 @@ static void search_hooks(const struct list_head *hook_list){
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
 		if (mod){
-			SUCCESS("Module [%s] controls a Netfilter hook.\n", mod->name);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
-			SUCCESS("Module [%s] controls a Netfilter hook.\n", mod_name);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
 		}
 		mutex_unlock(&module_mutex);
 	}

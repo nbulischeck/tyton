@@ -14,7 +14,7 @@ void analyze_syscalls(void){
 	unsigned long addr;
 	struct module *mod;
 
-	GENERIC("Analyzing Syscall Hooks\n");
+	INFO("Analyzing Syscall Hooks\n");
 
 	if (!sct || !ckt)
 		return;
@@ -25,11 +25,11 @@ void analyze_syscalls(void){
 			mutex_lock(&module_mutex);
 			mod = get_module_from_addr(addr);
 			if (mod){
-				SUCCESS("Module [%s] hooked syscall [%d].\n", mod->name, i);
+				ALERT("Module [%s] hooked syscall [%d].\n", mod->name, i);
 			} else {
 				mod_name = find_hidden_module(addr);
 				if (mod_name)
-					SUCCESS("Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
+					ALERT("Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
 			}
 			mutex_unlock(&module_mutex);
 		}

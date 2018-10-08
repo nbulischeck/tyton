@@ -44,14 +44,14 @@ static void init_kernel_syms(void){
 }
 
 static int __init init_mod(void){
-	GENERIC("Inserting Module\n");
+	INFO("Inserting Module\n");
 	init_kernel_syms();
 	init_del_workqueue();
 	return 0;
 }
 
 static void __exit exit_mod(void){
-	GENERIC("Exiting Module\n");
+	INFO("Exiting Module\n");
 	exit_del_workqueue();
 }
 
