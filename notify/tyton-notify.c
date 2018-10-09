@@ -96,7 +96,6 @@ void notify_user(const char *message){
 	notify_uninit();
 
 exit:
-	syslog(LOG_INFO, "%s: %s\n", strings[1], strings[2]);
 	destroy(strings);
 }
 
@@ -136,8 +135,6 @@ int main(int argc, char **argv){
 		return 1;
 	}
 
-	openlog("tyton-notify", LOG_PID|LOG_CONS, LOG_DAEMON);
-
 	if (sd_journal_open(&j, SD_JOURNAL_SYSTEM) < 0)
 		return 1;
 
@@ -165,8 +162,6 @@ int main(int argc, char **argv){
 	}
 
 	sd_journal_close(j);
-
-	closelog();
 
 	return 0;
 }
