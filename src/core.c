@@ -8,6 +8,7 @@
 #include "netfilter_hooks.h"
 #include "interrupt_hooks.h"
 
+static int timeout = 5;
 unsigned long *idt = NULL; /* IDT Table */
 unsigned long *sct = NULL; /* Syscall Table */
 int (*ckt)(unsigned long addr) = NULL; /* Core Kernel Text */
@@ -26,7 +27,7 @@ static void execute_analysis(void){
 static void work_func(struct work_struct *dummy){
 	execute_analysis();
 	schedule_delayed_work(&work,
-		round_jiffies_relative(TIMEOUT*60*HZ));
+		round_jiffies_relative(timeout*60*HZ));
 }
 
 void init_del_workqueue(void){
@@ -55,5 +56,6 @@ static void __exit exit_mod(void){
 	exit_del_workqueue();
 }
 
+module_param(timeout, int, 0);
 module_init(init_mod);
 module_exit(exit_mod);
