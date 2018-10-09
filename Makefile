@@ -17,7 +17,15 @@ default: all
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-	make -C $(PWD)/notify	
+	make -C $(PWD)/notify
+
+install:
+	sudo insmod tyton.ko
+	make -C $(PWD)/notify install
+
+uninstall:
+	sudo rmmod tyton.ko
+	make -C $(PWD)/notify uninstall
 
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
