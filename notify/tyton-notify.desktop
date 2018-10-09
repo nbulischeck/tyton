@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Tyton Notify
+Comment=Notify Service for Tyton Kernel Module Rootkit Hunter
+Exec=/usr/bin/tyton-notify
+X-GNOME-Autostart-Phase=Desktop
+X-GNOME-AutoRestart=true
+X-GNOME-Autostart-Notify=true
