@@ -43,4 +43,42 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 
 ## Additional Features
 
-**Notifications**: Users (including myself) do not actively monitor their journald logs, so a userland notification daemon has been included to monitor journald logs and display them to the user using libnotify.
+**Notifications**: Users (including myself) do not actively monitor their journald logs, so a userland notification daemon has been included to monitor journald logs and display them to the user using libnotify. Notifications are enabled after install by XDG autorun, so if your DM does not have `/etc/xdg/autostart` it will fail.
+
+## Building
+
+To build both the kernel module and notification daemon, run `make`. All dependencies are listed below.
+
+### Dependencies
+
+* Linux Kernel 4.4.0-31 or greater
+* Corresponding Linux Kernel Headers
+* GCC
+* Make
+* Libnotify
+
+#### Ubuntu/Debian/Kali
+
+`sudo apt install linux-headers-$(uname -r) gcc make libnotify-dev`
+
+#### Arch
+
+`sudo pacman -S linux-headers gcc make libnotify`
+
+## Installing
+
+To install both the kernel module and notification daemon, run `make install`.
+
+This will copy the notificaation daemon to `/etc/xdg/autostart` and insert the kernel module with `sudo insmod tyton.ko`.
+
+### Kernel Module Arguments
+
+The kernel module can be passed a specific timeout argument on insertion through the command line.
+
+To do this, run the command `sudo insmod tyton.ko timeout=X` where X is the number of minutes you would like the kernel module to wait before executing its scan again.
+
+## Uninstalling
+
+To uninstall both the kernel module and notification daemon, run  `make uninstall`.
+
+This will remove the notification daemon from `/etc/xdg/autostart` and remove the kernel module with `sudo rmmod tyton`.

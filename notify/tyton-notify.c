@@ -72,9 +72,8 @@ char **parse_message(const char *message){
 	return strings;
 }
 
-void notify_user(const char *message){
+void notify_user(NotifyNotification *notification, const char *message){
 	char *title, *type, **strings;
-	NotifyNotification *notification;
 
 	title = "Tyton Kernel Message";
 	strings = parse_message(message);
@@ -89,11 +88,9 @@ void notify_user(const char *message){
 		goto exit;
 	}
 
-	notify_init(title);
-	notification = notify_notification_new(title, strings[2], type);
-	notify_notification_show (notification, NULL);
+	notify_notification_update(notification, title, strings[2], type);
+	notify_notification_show(notification, NULL);
 	g_object_unref(G_OBJECT(notification));
-	notify_uninit();
 
 exit:
 	destroy(strings);
@@ -129,11 +126,15 @@ int main(int argc, char **argv){
     size_t l;
     const void *d;
 	sd_journal *j;
+	NotifyNotification *notification;
 
 	if (daemon(0, 0) < 0){
 		fprintf(stderr, "Failed to daemonize.\n");
 		return 1;
 	}
+
+	notify_init("Tyton Kernel Message");
+	notification = notify_notification_new(NULL, NULL, NULL);
 
 	if (sd_journal_open(&j, SD_JOURNAL_SYSTEM) < 0)
 		return 1;
@@ -158,10 +159,11 @@ int main(int argc, char **argv){
 			return 1;
 
 		if (strstr(d, "tyton"))
-			notify_user(d);
+			notify_user(notification, d);
 	}
 
 	sd_journal_close(j);
+	notify_uninit();
 
 	return 0;
 }

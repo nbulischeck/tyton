@@ -1,6 +1,5 @@
 CC = gcc
-INCL := `pkg-config --cflags --libs gtk+-2.0`
-INCL += `pkg-config --cflags --libs libnotify`
+INCL := `pkg-config --cflags --libs libnotify`
 INCL += -lsystemd
 
 all:
