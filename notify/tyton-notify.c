@@ -90,7 +90,6 @@ void notify_user(NotifyNotification *notification, const char *message){
 
 	notify_notification_update(notification, title, strings[2], type);
 	notify_notification_show(notification, NULL);
-	g_object_unref(G_OBJECT(notification));
 
 exit:
 	destroy(strings);
@@ -163,6 +162,7 @@ int main(int argc, char **argv){
 	}
 
 	sd_journal_close(j);
+	g_object_unref(G_OBJECT(notification));
 	notify_uninit();
 
 	return 0;
