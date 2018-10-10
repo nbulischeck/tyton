@@ -56,14 +56,16 @@ To build both the kernel module and notification daemon, run `make`. All depende
 * GCC
 * Make
 * Libnotify
+* Package Config
+* GTK3
 
 #### Ubuntu/Debian/Kali
 
-`sudo apt install linux-headers-$(uname -r) gcc make libnotify-dev`
+`sudo apt install linux-headers-$(uname -r) gcc make libnotify-dev pkg-config libgtk-3-dev`
 
 #### Arch
 
-`sudo pacman -S linux-headers gcc make libnotify`
+`sudo pacman -S linux-headers gcc make libnotify pkgconfig gtk3`
 
 ## Installing
 
