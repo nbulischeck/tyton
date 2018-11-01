@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "module_list.h"
 #include "syscall_hooks.h"
+#include "network_hooks.h"
 #include "netfilter_hooks.h"
 #include "interrupt_hooks.h"
 
@@ -19,6 +20,7 @@ static DECLARE_DELAYED_WORK(work, work_func);
 static void execute_analysis(void){
 	analyze_modules();
 	analyze_syscalls();
+	analyze_networks();
 	analyze_netfilter();
 	analyze_processes();
 	analyze_interrupts();

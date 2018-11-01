@@ -7,6 +7,7 @@ $(TYTON)-y += $(SRCDIR)/util.o
 $(TYTON)-y += $(SRCDIR)/proc.o
 $(TYTON)-y += $(SRCDIR)/module_list.o
 $(TYTON)-y += $(SRCDIR)/syscall_hooks.o
+$(TYTON)-y += $(SRCDIR)/network_hooks.o
 $(TYTON)-y += $(SRCDIR)/netfilter_hooks.o
 $(TYTON)-y += $(SRCDIR)/interrupt_hooks.o
 
