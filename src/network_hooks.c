@@ -45,6 +45,8 @@ void analyze_networks(void){
 
 	for (i = 0; i < NUM_NET_ENTRIES; i++){
 		net[i].entry = find_subdir(&init_net.proc_net->subdir, net[i].name);
+		if (!net[i].entry)
+			continue;
 
 		seq_ops = net[i].entry->seq_ops;
 		seq_fops = net[i].entry->proc_fops;
