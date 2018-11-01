@@ -9,11 +9,13 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 
 ## Detected Attacks
 
+**Hidden Modules**
+
 **Syscall Table Hooking**
   
-**Netfilter Hooking**
+**Network Protocol Hooking**
 
-**Hidden Modules**
+**Netfilter Hooking**
 
 **Zeroed Process Inodes**
 
@@ -25,15 +27,15 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 
 &nbsp;
 
-&nbsp;
-
 ## Detection Methodology
+
+**Hidden Modules**: `Sysfs` contains a multitude of ksets which in turn contain multiple kernel objects (kobjects). The kset `module_kset` within `sysfs` holds kobject references to all loaded kernel modules. By traversing this list, we can resolve each kobject back to its containing object (its referenced kernel module). When compared with the current module list entries from `find_module(kobj->mod->name)`, we can uncover modules who unlinked themselves from the list.
 
 **Syscall Table Hooking**: Search through the syscall table to see if any functions point outside the core kernel text section. If they do not point within the core kernel text section, it is likely that they have been hooked but to make sure we search all loaded modules to verify this.
 
-**Netfilter Hooking**: Search through all possible Netfilter hook combinations and report all modules that have active Netfilter hooks. Netfilter hooks have a legitimate use, but it is unlikely that they would be present beyond those made for iptables, ebtables, and friends. They are uncommonly used in LKM rootkits to create backdoors by intercepting packets used to authenticate for port knocking.
+**Network Protocol Hooking**: Grab the `init_net.proc_net` process directory entry and iterate over every subdirectory in the red-black tree looking for subdirectories named `tcp`, `tcp6`, `udp`, `udp6`, `udplite`, and `udplite6`. Once we've acquire the directory entry for the specific network protocol, we can grab the function pointers for `seq_fops` and `seq_ops` - namely we are looking for `seq_fops->llseek`, `seq_fops->read`, `seq_fops->release`, and `seq_ops->show`. In doing this, we can verify that the operation function pointers of network protocols are still inside the core kernel text section and not being manipulated by a kernel module. These are commonly hooked to hide network traffic or exposed ports from netstat and other userland interfaces.
 
-**Hidden Modules**: `Sysfs` contains a multitude of ksets which in turn contain multiple kernel objects (kobjects). The kset `module_kset` within `sysfs` holds kobject references to all loaded kernel modules. By traversing this list, we can resolve each kobject back to its containing object (its referenced kernel module). When compared with the current module list entries from `find_module(kobj->mod->name)`, we can uncover modules who unlinked themselves from the list.
+**Netfilter Hooking**: Search through all possible Netfilter hook combinations and report all modules that have active Netfilter hooks. Netfilter hooks have a legitimate use, but it is unlikely that they would be present beyond those made for iptables, ebtables, and friends. They are uncommonly used in LKM rootkits to create backdoors by intercepting packets used to authenticate for port knocking.
 
 **Zeroed Process Inodes**: Search through `/proc` for all `linux_dirent` structures and examine the inodes to find any set to 0. An inode of 0 is typically ignored from directory listings which makes it a good candidate for rootkits to set directories to in order to hide their files.
 
