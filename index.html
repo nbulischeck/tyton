@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="apple-touch-icon" sizes="57x57" href="favicons/apple-icon-57x57.png">
+		<link rel="apple-touch-icon" sizes="60x60" href="favicons/apple-icon-60x60.png">
+		<link rel="apple-touch-icon" sizes="72x72" href="favicons/apple-icon-72x72.png">
+		<link rel="apple-touch-icon" sizes="76x76" href="favicons/apple-icon-76x76.png">
+		<link rel="apple-touch-icon" sizes="114x114" href="favicons/apple-icon-114x114.png">
+		<link rel="apple-touch-icon" sizes="120x120" href="favicons/apple-icon-120x120.png">
+		<link rel="apple-touch-icon" sizes="144x144" href="favicons/apple-icon-144x144.png">
+		<link rel="apple-touch-icon" sizes="152x152" href="favicons/apple-icon-152x152.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-icon-180x180.png">
+		<link rel="icon" type="image/png" sizes="192x192"  href="favicons/android-icon-192x192.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="96x96" href="favicons/favicon-96x96.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+		<link rel="manifest" href="favicons/manifest.json">
+		<meta name="msapplication-TileColor" content="#ffffff">
+		<meta name="msapplication-TileImage" content="favicons/ms-icon-144x144.png">
+		<meta name="theme-color" content="#ffffff">
+
+		<title>Tyton</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+			<section>
+				<h1 style="color: #1b91ff">Tyton</h1>
+				<p>Linux Kernel-Mode Rootkit Hunter</p>
+			</section>
+			<section>
+				<h2>Why Tyton?</h2>
+				<img src="images/tyton-large.jpg"/>
+				<aside class="notes">
+					Firstly, the name comes from "Tytonidae", the family for Barn owls (they're well-adapted hunters). The reason for creating this project stems for my (Nick) interest in Linux Kernel internals. I wrote a pretty interesting rootkit a while back and was wondering how easy (or hard) it would be to defend against.
+				</aside>
+			</section>
+			<section>
+				<section>
+					<h2>Features</h2>
+					<p class="fragment" style="color: #1b91ff">Hidden Modules</p>
+					<p class="fragment" style="color: #1b91ff">Syscall Table Hooking</p>
+					<p class="fragment" style="color: #1b91ff">Network Protocol Hooking</p>
+					<p class="fragment" style="color: #1b91ff">Netfilter Hooking</p>
+					<p class="fragment" style="color: #1b91ff">Zeroed Process Inodes</p>
+					<p class="fragment" style="color: #1b91ff">Process Fops Hooking</p>
+					<p class="fragment" style="color: #1b91ff">Interrupt Descriptor Table Hooking</p>
+				</section>
+				<section>
+					<h3>Hidden Modules</h3>
+					<img src="images/kset.svg"/>
+					<aside class="notes">
+						Sysfs is a virtual filesystem that describes the devices known to the system from various viewpoints. By default it is mounted on /sys. Sysfs contains a bunch of kernel sets or ksets which in turn contain multiple kernel objects or kobjects. The kset "module_kset" within sysfs holds kobject references to all loaded kernel modules. By traversing this list, we can resolve each kobject back to its containing object (its referenced kernel module). When compared with the current module list entries from find_module(kobj->mod->name), we can uncover modules who unlinked themselves from the list.
+					</aside>
+				</section>
+				<section>
+					<h3>Syscall Table Hooking</h3>
+					<img src="images/kmm-64.svg"/>
+						<aside class="notes">
+							This diagram shows how the kernel gets mapped into memory. We can see that there are two distinct sections for "Kernel Text Mapping" and "Module Mapping Space". Kernel Text Mapping, also referred to as the Core Kernel Text section, contains the Kernel's text and data sections. We can iterate through the syscall table to see if any functions point outside of this section. If they do not point within the core kernel text section, it is likely that they have been hooked but to make sure we search all loaded modules to verify this.
+						</aside>
+					</section>
+					<section>
+						<h3>Network Protocol Hooking</h3>
+							<pre><code data-trim data-noescape class="C">
+							static const struct seq_operations tcp4_seq_ops = {
+							  .show		= tcp4_seq_show,
+							  .start	= tcp_seq_start,
+							  .next		= tcp_seq_next,
+							  .stop		= tcp_seq_stop,
+							};
+
+							static const struct file_operations proc_net_seq_fops = {
+							  .open		= seq_open_net,
+							  .read		= seq_read,
+							  .write	= proc_simple_write,
+							  .llseek	= seq_lseek,
+							  .release	= seq_release_net,
+							};
+							</code></pre>
+							<aside class="notes">
+								"tcp4_seq_ops" is obviously tcp4 only. "proc_net_seq_fops" is for everyone. We're covering tcp4, tcp6, udp4, udp6, udplite4, and udplite6.
+							</aside>
+					</section>
+					<section>
+						<h4>Network Protocol Hooking</h4>
+							<pre><code data-trim data-noescape class="C">
+								static int __net_init tcp4_proc_init_net(struct net *net){
+								  if (!proc_create_net_data(
+								      "tcp", ..., &tcp4_seq_ops, ..., &tcp4_seq_afinfo
+								  )) return -ENOMEM;
+								  return 0;
+								}
+
+								struct proc_dir_entry *proc_create_net_data(...){
+								  struct proc_dir_entry *p;
+								  p = proc_create_reg(name, mode, &parent, data);
+								  p->proc_fops = &proc_net_seq_fops;
+								  p->seq_ops = ops;
+								  return proc_register(parent, p);
+								}
+							</code></pre>
+							<aside class="notes">
+								This code shows how networks are registered in the proc filesystem (see /proc/self/net). People used to hook tcp4_seq_afinfo because that's what contained the operations, but it was moved out into {tcp4, tcp6, ...}_seq_ops. If you hook the "show" function, you can hide from netstat.
+							</aside>
+					</section>
+					<section>
+						<h3>Netfilter Hooking</h3>
+							<pre><code data-trim data-noescape class="C">
+								int nfhook_init(void){
+								  nfho.hook = (nf_hookfn *) nfhook;
+								  nfho.hooknum = NF_INET_PRE_ROUTING;
+								  nfho.pf = AF_INET;
+								  nfho.priority = NF_IP_PRI_FIRST;
+
+								  #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,13,0)
+								    return nf_register_net_hook(&init_net, &nfho);
+								  #else
+								    return nf_register_hook(&nfho);
+								  #endif
+								}
+							</code></pre>
+							<aside class="notes">
+								Netfilter hooks have a legitimate use, but it is unlikely that they would be present beyond those made for iptables, ebtables, and friends. We can search through all possible Netfilter hook combinations (protocol and hook number) and report all modules that have active Netfilter hooks. They are uncommonly used in LKM rootkits to create backdoors by intercepting packets used to authenticate for port knocking.
+							</aside>
+					</section>
+					<section>
+						<h3>Zeroed Process Inodes</h3>
+							<pre><code data-trim data-noescape class="C">
+								while (size > 0){
+								  if (d->d_ino == 0){
+									buffer = kzalloc(d->d_namlen+1, GFP_KERNEL);
+									memcpy(buffer, d->d_name, d->d_namlen);
+									ALERT("Hidden Process [/proc/%s].\n", buffer);
+									kfree(buffer);
+								  }
+								  reclen = ALIGN(sizeof(*d) + d->d_namlen, sizeof(u64));
+								  d = (struct linux_dirent *)((char *)d + reclen);
+								  size -= reclen;
+								}
+							</code></pre>
+							<aside class="notes">
+								The code shown iterates over the returned directory entries. If a directory entry has an inode set to 0, print the process directory. After, align to the next entry and loop. An inode of 0 is typically ignored from directory listings which makes it a good candidate for rootkits to set directories to in order to hide their files, or in this case, malicious process.
+							</aside>
+					</section>
+					<section>
+						<h3>Process Fops Hooking</h3>
+							<pre><code data-trim data-noescape class="C">
+							fp = filp_open("/proc", O_RDONLY, S_IRUSR);
+
+							#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
+							  addr = (unsigned long)fp->f_op->iterate;
+							#else
+							  addr = (unsigned long)fp->f_op->readdir;
+							#endif
+
+							if (!ckt(addr)){
+							  mod = get_module_from_addr(addr);
+							  if (mod){
+							    ALERT("Module [%s] hijacked /proc fops.\n", mod->name);
+							  } ...
+							}
+							</code></pre>
+							<aside class="notes">
+								The code shown opens a file pointer to and checks to see if iterate or readdir point outside the core kernel text section. Again, if it does, it has been modified by an outside process, so we will attempt to identify the (potential) module that is doing it.
+							</aside>
+					</section>
+					<section>
+						<h3>IDT Hooking</h3>
+						<img src="images/kmm-64.svg"/>
+						<aside class="notes">
+							This diagram is the same from "Syscall Hooking" and shows how the kernel gets mapped into memory. We can see that there are two distinct sections for "Kernel Text Mapping" and "Module Mapping Space". Kernel Text Mapping, also referred to as the Core Kernel Text section, contains the Kernel's text and data sections. We can iterate through the "Interrupt Descriptor Table" to see if any vectors point outside of this section. If they do not point within the core kernel text section, it is likely that they have been hooked but to make sure we search all loaded modules to verify this.
+						</aside>
+					</section>
+				</section>
+			<section>
+				<section>
+					<h2>Additional Features</h2>
+					<p>Userland Notifications</p>
+				</section>
+				<section>
+					<h3>Userland Notification</h3>
+					<img src="images/notify-alert.png"/>
+					<img src="images/notify-warning.png"/>
+					<img src="images/notify-error.png"/>
+					<aside class="notes">
+						Users (including myself) do not actively monitor their journald logs, so a userland notification daemon has been included to monitor journald logs and display them to the user using libnotify. Notifications are enabled after install by XDG autorun, so if your DM does not have /etc/xdg/autostart it will fail. Alerts are clear signs of LKM attacks, warnings indicate possible issues with your environment, and errors are typically a result of an unstable kernel/environment.
+					</aside>
+				</section>
+			</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
