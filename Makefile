@@ -21,12 +21,7 @@ all:
 	make -C $(PWD)/notify
 
 install:
-	insmod tyton.ko
-	make -C $(PWD)/notify install
-
-uninstall:
-	rmmod tyton.ko
-	make -C $(PWD)/notify uninstall
+	cp tyton.ko $(DESTDIR)/
 
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
