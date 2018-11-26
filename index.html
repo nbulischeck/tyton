@@ -267,6 +267,58 @@
 					<p class="fragment" style="color: #1b91ff">make uninstall</p>
 				</section>
 			</section>
+			<section>
+				<section>
+					<h2>RPM Packaging for CentOS and Fedora</h2>
+					<p class="fragment" style="color: #1b91ff">dnf install / yum install</p>
+				</section>
+				<section>
+					<h3>Split Packages</h3>
+					<p class="fragment">Separate packages for tyton and tyton-notify</p>
+				</section>
+				<section>
+					<h4>Spec files are the building blocks of RPMs</h4>
+					<pre><code data-trim data-noescape>
+						Summary: Linux kernel module for Tyton
+						Name: dkms-tyton
+						Version: master
+						Release: 1%{?dist}
+						
+						...
+						
+						BuildArch: noarch
+						Requires: gcc, make, systemd-devel, kernel-devel
+						Requires(post): dkms
+						Requires(preun): dkms
+						
+						...
+						
+						%install
+						
+						...
+						
+						%{__mkdir_p} %{buildroot}%{_usrsrc}/%{dkms_name}-%{dkms_vers}/
+						%{__cp} -a ./* %{buildroot}%{_usrsrc}/%{dkms_name}-%{dkms_vers}/
+						
+						...
+
+						%post
+						# Add to DKMS registry
+						dkms add -m %{dkms_name} -v %{dkms_vers} || :
+						# Rebuild and make available for the currenty running kernel
+						dkms build -m %{dkms_name} -v %{dkms_vers} || :
+						dkms install -m %{dkms_name} -v %{dkms_vers} --force || :
+
+						%preun
+						# Remove all versions from DKMS registry
+						dkms remove -m %{dkms_name} -v %{dkms_vers} --all || :
+						
+						%files
+						%defattr(-, root, root, 0755)
+						%{_usrsrc}/%{dkms_name}-%{dkms_vers}/				
+					</code></pre>
+				</section>
+			</section>
 			</div>
 		</div>
 
