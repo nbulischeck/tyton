@@ -285,14 +285,16 @@
 						Release: 1%{?dist}
 						
 						...
-						
+
 						BuildArch: noarch
 						Requires: gcc, make, systemd-devel, kernel-devel
 						Requires(post): dkms
 						Requires(preun): dkms
-						
-						...
-						
+					</code></pre>
+				</section>
+				<section>
+					<h4>Buildroots and %install</h4>
+					<pre><code data-trim data-noescape>
 						%install
 						
 						...
@@ -301,7 +303,11 @@
 						%{__cp} -a ./* %{buildroot}%{_usrsrc}/%{dkms_name}-%{dkms_vers}/
 						
 						...
-
+					</code></pre>
+				</section>
+				<section>
+					<h4>Spec files are the building blocks of RPMs</h4>
+					<pre><code data-trim data-noescape>
 						%post
 						# Add to DKMS registry
 						dkms add -m %{dkms_name} -v %{dkms_vers} || :
@@ -312,10 +318,14 @@
 						%preun
 						# Remove all versions from DKMS registry
 						dkms remove -m %{dkms_name} -v %{dkms_vers} --all || :
-						
-						%files
-						%defattr(-, root, root, 0755)
-						%{_usrsrc}/%{dkms_name}-%{dkms_vers}/				
+					</code></pre>
+				</section>
+				<section>
+					<h4>Packaging</h4>
+					<pre><code data-trim data-noescape>
+							%files
+							%defattr(-, root, root, 0755)
+							%{_usrsrc}/%{dkms_name}-%{dkms_vers}/
 					</code></pre>
 				</section>
 			</section>
