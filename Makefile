@@ -20,13 +20,21 @@ all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 	make -C $(PWD)/notify
 
-install:
-	sudo insmod tyton.ko
+install: install-notify install-module
+
+install-notify: 
 	make -C $(PWD)/notify install
 
-uninstall:
-	sudo rmmod tyton.ko
+install-module:
+	sudo insmod tyton.ko
+
+uninstall: uninstall-notify uninstall-module
+
+uninstall-notify:
 	make -C $(PWD)/notify uninstall
+
+uninstall-module:
+	sudo rmmod tyton.ko
 
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
