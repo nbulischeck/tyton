@@ -73,7 +73,7 @@ To build both the kernel module and notification daemon, run `make`. All depende
 
 To install both the kernel module and notification daemon, run `make install`.
 
-This will copy the notificaation daemon to `/etc/xdg/autostart` and insert the kernel module with `sudo insmod tyton.ko`.
+This will copy the notification daemon to `/etc/xdg/autostart` and insert the kernel module with `sudo insmod tyton.ko`.
 
 ### Kernel Module Arguments
 
