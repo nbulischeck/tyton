@@ -21,11 +21,11 @@ all:
 	make -C $(PWD)/notify
 
 install:
-	sudo insmod tyton.ko
+	insmod tyton.ko
 	make -C $(PWD)/notify install
 
 uninstall:
-	sudo rmmod tyton.ko
+	rmmod tyton.ko
 	make -C $(PWD)/notify uninstall
 
 clean:
