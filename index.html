@@ -40,6 +40,11 @@
 		</script>
 	</head>
 	<body>
+
+		<style>
+			p > code.hljs { display: inline; }
+		</style>
+
 		<div class="reveal">
 			<div class="slides">
 			<section>
@@ -204,6 +209,62 @@
 					<aside class="notes">
 						Users (including myself) do not actively monitor their journald logs, so a userland notification daemon has been included to monitor journald logs and display them to the user using libnotify. Notifications are enabled after install by XDG autorun, so if your DM does not have /etc/xdg/autostart it will fail. Alerts are clear signs of LKM attacks, warnings indicate possible issues with your environment, and errors are typically a result of an unstable kernel/environment.
 					</aside>
+				</section>
+			</section>
+			<section>
+				<section>
+					<h2>Building</h2>
+					<p class="fragment" style="color: #1b91ff">make</p>
+				</section>
+				<section>
+					<h3>Dependencies</h3>
+					<p class="fragment" style="color: #1b91ff">Linux Kernel 4.4.0-31 or greater</p>
+					<p class="fragment" style="color: #1b91ff">Corresponding Linux Kernel Headers</p>
+					<p class="fragment" style="color: #1b91ff">GCC</p>
+					<p class="fragment" style="color: #1b91ff">Make</p>
+					<p class="fragment" style="color: #1b91ff">Libnotify</p>
+					<p class="fragment" style="color: #1b91ff">Package Config</p>
+					<p class="fragment" style="color: #1b91ff">GTK3</p>
+				</section>
+				<section>
+					<h4>Ubuntu/Debian/Kali Dependencies</h4>
+					<pre><code data-trim data-noescape class="bash">
+						sudo apt install -y
+						  linux-headers-$(uname -r) \
+						  gcc \
+						  make \
+						  libnotify-dev \
+						  pkg-config \
+						  libgtk-3-dev
+					</code></pre>
+				</section>
+				<section>
+					<h4>Arch Dependencies</h4>
+					<pre><code data-trim data-noescape class="bash">
+						sudo pacman -S \
+						  linux-headers \
+						  gcc \
+						  make \
+						  libnotify \
+						  pkgconfig \
+						  gtk3
+					</code></pre>
+				</section>
+			</section>
+			<section>
+				<section>
+					<h2>Installing</h2>
+					<p class="fragment" style="color: #1b91ff">make install</p>
+				</section>
+				<section>
+					<h3>Kernel Module Arguments</h3>
+					<p class="fragment" style="color: #1b91ff">sudo insmod tyton.ko timeout=X # mins</p>
+				</section>
+			</section>
+			<section>
+				<section>
+					<h2>Uninstalling</h2>
+					<p class="fragment" style="color: #1b91ff">make uninstall</p>
 				</section>
 			</section>
 			</div>
