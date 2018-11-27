@@ -10,7 +10,7 @@ arch=('i686' 'x86_64')
 url="https://github.com/nbulischeck/tyton/"
 license=('GPL3')
 depends=('dkms' 'linux-headers' 'gcc' 'make' 'libnotify' 'pkgconfig' 'gtk3')
-source=("git+https://github.com/nbulischeck/tyton.git#branch=arch-pkg")
+source=("git+https://github.com/nbulischeck/tyton.git")
 sha1sums=('SKIP')
 
 build() {
@@ -23,17 +23,16 @@ package() {
   cd "${srcdir}/${_pkgbase}"
   
   # Install
-  msg2 "Starting make install..."
   make DESTDIR="${pkgdir}" install
   make DESTDIR="${pkgdir}" clean
 
   # Set name and version
   sed -e "s/@_PKGBASE@/${_pkgbase}/" \
       -e "s/@PKGVER@/${pkgver}/" \
-      -i "aur/dkms.conf"
+      -i "packaging/aur/dkms.conf"
 
   # Copy source files
-  INSTALLDIR="${pkgdir}/usr/src/${_pkgbase}-${pkgver}.${pkgrel}/"
+  INSTALLDIR="${pkgdir}/usr/src/${_pkgbase}-${pkgver}.${pkgrel}"
   find . -type f \
     \( -path ./notify \) -prune -o \
     \( -path ./images \) -prune -o \
@@ -41,5 +40,5 @@ package() {
     -exec install -Dm644 "{}" "${INSTALLDIR}/{}" \;
 
   # Move dkms up
-  mv "${INSTALLDIR}/aur/dkms.conf" "${INSTALLDIR}/dkms.conf"
+  mv "${INSTALLDIR}/packaging/aur/dkms.conf" "${INSTALLDIR}/dkms.conf"
 }
