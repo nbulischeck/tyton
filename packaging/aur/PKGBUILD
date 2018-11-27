@@ -1,7 +1,7 @@
 # Maintainer: Nick Bulischeck <nbulisc@g.clemson.edu>
 # Contributor: Weston Belk <westonb@g.clemson.edu>
 
-pkgname=tyton-git
+pkgname=tyton-dkms-git
 _pkgbase=tyton
 pkgver=1
 pkgrel=1
