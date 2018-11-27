@@ -14,28 +14,21 @@ $(TYTON)-y += $(SRCDIR)/interrupt_hooks.o
 HEADERS := $(PWD)/include
 ccflags-y += -I$(HEADERS)
 
-default: all
+default: module notify
 
-all:
+module:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+notify:
 	make -C $(PWD)/notify
 
-install: install-notify install-module
+install:
+	cp tyton.ko $(DESTDIR)/
 
-install-notify: 
-	make -C $(PWD)/notify install
+clean: clean-module clean-notify
 
-install-module:
-	sudo insmod tyton.ko
-
-uninstall: uninstall-notify uninstall-module
-
-uninstall-notify:
-	make -C $(PWD)/notify uninstall
-
-uninstall-module:
-	sudo rmmod tyton.ko
-
-clean:
+clean-module:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+
+clean-notify:
 	make -C $(PWD)/notify clean
