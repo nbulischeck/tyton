@@ -3,7 +3,7 @@
 
 typedef int (*proc_write_t)(struct file *, char *, size_t);
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,11,0)
 
 typedef struct refcount_struct {
 	atomic_t refs;
