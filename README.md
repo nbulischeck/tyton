@@ -61,9 +61,9 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 * Package Config
 * GTK3
 
-#### From Source
+### From Source
 
-##### Ubuntu/Debian/Kali
+#### Ubuntu/Debian/Kali
 
 1. `sudo apt install linux-headers-$(uname -r) gcc make libnotify-dev pkg-config libgtk-3-dev`
 2. `git clone https://github.com/nbulischeck/tyton.git`
@@ -71,7 +71,7 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 4. `make`
 5. `sudo insmod tyton.ko`
 
-##### Arch
+#### Arch
 
 1. `sudo pacman -S linux-headers gcc make libnotify pkgconfig gtk3`
 2. `git clone https://github.com/nbulischeck/tyton.git`
@@ -79,13 +79,13 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 4. `make`
 5. `sudo insmod tyton.ko`
 
-###### Kernel Module Arguments
+##### Kernel Module Arguments
 
 The kernel module can be passed a specific timeout argument on insertion through the command line.
 
 To do this, run the command `sudo insmod tyton.ko timeout=X` where X is the number of minutes you would like the kernel module to wait before executing its scan again.
 
-#### AUR
+### AUR
 
 Tyton is available on the AUR [here](https://aur.archlinux.org/packages/tyton-dkms-git/).
 
