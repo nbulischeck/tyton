@@ -1,3 +1,7 @@
+language: c
+
+install: make get-deps
+
 matrix:
   include:
     # works on Precise and Trusty
