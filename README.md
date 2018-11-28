@@ -83,6 +83,16 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 4. `make`
 5. `sudo insmod tyton.ko`
 
+> **Note**: It's recommended to install Tyton through the AUR so you can benefit from DKMS.
+
+#### Fedora/CentOS
+
+1. `dnf install kernel-devel gcc make libnotify libnotify-devel systemd-devel gtk3-devel gtk3`
+2. `git clone https://github.com/nbulischeck/tyton.git`
+3. `cd tyton`
+4. `make`
+5. `sudo insmod tyton.ko`
+
 ##### Kernel Module Arguments
 
 The kernel module can be passed a specific timeout argument on insertion through the command line.
