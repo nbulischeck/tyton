@@ -18,7 +18,7 @@ Requires(post): dkms
 Requires(preun): dkms
 
 %description
-Linux Kernel-Mode Rootkit Hunter for kernel 4.4.0-31+
+Linux Kernel-Mode Rootkit Hunter for Linux 4.4.0-31+
 
 %prep
 %setup -n %{real_name}-%{version}
@@ -40,9 +40,13 @@ Linux Kernel-Mode Rootkit Hunter for kernel 4.4.0-31+
 %{__cat} > %{buildroot}%{_usrsrc}/%{dkms_name}-%{dkms_vers}/dkms.conf << 'EOF'
 PACKAGE_NAME=%{dkms_name}
 PACKAGE_VERSION=%{dkms_vers}
-BUILT_MODULE_NAME[0]=tyton
-DEST_MODULE_LOCATION[0]=/kernel/drivers/tyton
 AUTOINSTALL="YES"
+
+BUILT_MODULE_NAME[0]=tyton
+DEST_MODULE_LOCATION[0]=/kernel/drivers/misc
+
+MAKE[0]="make module"
+CLEAN="make clean"
 EOF
 
 %clean
