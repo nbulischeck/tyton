@@ -3,6 +3,10 @@
 
 typedef int (*proc_write_t)(struct file *, char *, size_t);
 
+typedef struct refcount_struct {
+	atomic_t refs;
+} refcount_t;
+
 /*
 	struct proc_dir_entry was made opaque in 3.10 with the following commit.
 
