@@ -1,7 +1,7 @@
 #ifndef NETWORK_HOOKS_H
 #define NETWORK_HOOKS_H
 
-#include <linux/proc_fs.h> /* proc_write_t */
+typedef int (*proc_write_t)(struct file *, char *, size_t);
 
 /*
 	struct proc_dir_entry was made opaque in 3.10 with the following commit.
