@@ -58,6 +58,7 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 * GCC
 * Make
 * Libnotify
+* Libsystemd
 * Package Config
 * GTK3
 
@@ -65,7 +66,7 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 
 #### Ubuntu/Debian/Kali
 
-1. `sudo apt install linux-headers-$(uname -r) gcc make libnotify-dev pkg-config libgtk-3-dev`
+1. `sudo apt install linux-headers-$(uname -r) gcc make libnotify-dev pkg-config libgtk-3-dev libsystemd-dev`
 2. `git clone https://github.com/nbulischeck/tyton.git`
 3. `cd tyton`
 4. `make`
@@ -73,7 +74,7 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 
 #### Arch
 
-1. `sudo pacman -S linux-headers gcc make libnotify pkgconfig gtk3`
+1. `sudo pacman -S linux-headers gcc make libnotify libsystemd pkgconfig gtk3`
 2. `git clone https://github.com/nbulischeck/tyton.git`
 3. `cd tyton`
 4. `make`
