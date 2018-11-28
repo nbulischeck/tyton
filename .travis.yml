@@ -1,6 +1,6 @@
 language: c
 
-install: make get-deps
+install: make
 
 matrix:
   include:
