@@ -72,6 +72,8 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 4. `make`
 5. `sudo insmod tyton.ko`
 
+> **Note**: For Ubuntu 14.04, libsystemd-dev is named libsystemd-journal-dev.
+
 #### Arch
 
 1. `sudo pacman -S linux-headers gcc make libnotify libsystemd pkgconfig gtk3`
