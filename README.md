@@ -1,5 +1,6 @@
 # Tyton
 
+[![Build Status](https://travis-ci.com/nbulischeck/tyton.svg?branch=master)](https://travis-ci.com/nbulischeck/tyton)
 [![license](https://img.shields.io/badge/license-GPL-brightgreen.svg)](https://github.com/nbulischeck/tyton/blob/master/LICENSE)
 [![version](https://img.shields.io/badge/linux-4.4.0.31+-blue.svg?style=flat)](https://github.com/nbulischeck/tyton)
 
