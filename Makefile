@@ -1,5 +1,6 @@
 TYTON := tyton
 SRCDIR := src
+ORIGIN := $(PWD)
 
 obj-m := $(TYTON).o
 $(TYTON)-y += $(SRCDIR)/core.o
@@ -14,13 +15,11 @@ $(TYTON)-y += $(SRCDIR)/interrupt_hooks.o
 HEADERS := $(PWD)/include
 ccflags-y += -I$(HEADERS)
 
-default: module notify
-
 module:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
-notify:
-	make -C $(PWD)/notify
+daemon:
+	make -C ./notify
 
 install:
 	cp tyton.ko $(DESTDIR)/
@@ -31,4 +30,4 @@ clean-module:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 
 clean-notify:
-	make -C $(PWD)/notify clean
+	make -C ./notify clean

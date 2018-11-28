@@ -3,7 +3,7 @@ INCL := `pkg-config --cflags --libs gtk+-3.0`
 INCL += `pkg-config --cflags --libs libnotify`
 INCL += -lsystemd
 
-all:
+daemon:
 	$(CC) -o tyton-notify tyton-notify.c $(INCL)
 
 install:

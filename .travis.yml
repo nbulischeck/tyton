@@ -29,5 +29,5 @@ before_install:
 install:
     - sudo apt install linux-headers-$(uname -r) libnotify-dev pkg-config libgtk-3-dev
 
-script: make module
+script: make module daemon
 after_script: make clean
