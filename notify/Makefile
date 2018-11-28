@@ -1,7 +1,17 @@
 CC = gcc
 INCL := `pkg-config --cflags --libs gtk+-3.0`
 INCL += `pkg-config --cflags --libs libnotify`
-INCL += -lsystemd
+
+systemd := $(shell pkg-config --cflags --libs libsystemd)
+journal := $(shell pkg-config --cflags --libs libsystemd-journal)
+
+ifneq ($(systemd),)
+ INCL += `pkg-config --cflags --libs libsystemd`
+else
+ ifneq ($(journal),)
+  INCL += `pkg-config --cflags --libs libsystemd-journal`
+ endif
+endif
 
 daemon:
 	$(CC) -o tyton-notify tyton-notify.c $(INCL)
