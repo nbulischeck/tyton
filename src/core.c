@@ -58,8 +58,8 @@ static void __exit exit_mod(void){
 	exit_del_workqueue();
 }
 
-MODULE_AUTHOR("Nick Bulischeck");
-MODULE_DESCRIPTION("Rootkit Hunter");
+MODULE_AUTHOR("Nick Bulischeck <nbulisc@clemson.edu>");
+MODULE_DESCRIPTION("Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.");
 MODULE_LICENSE("GPL");
 
 module_param(timeout, int, 0);
