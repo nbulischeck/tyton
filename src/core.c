@@ -58,6 +58,10 @@ static void __exit exit_mod(void){
 	exit_del_workqueue();
 }
 
+MODULE_AUTHOR("Nick Bulischeck");
+MODULE_DESCRIPTION("Rootkit Hunter");
+MODULE_LICENSE("GPL");
+
 module_param(timeout, int, 0);
 module_init(init_mod);
 module_exit(exit_mod);
