@@ -3,9 +3,13 @@
 
 typedef int (*proc_write_t)(struct file *, char *, size_t);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
+
 typedef struct refcount_struct {
 	atomic_t refs;
 } refcount_t;
+
+#endif
 
 /*
 	struct proc_dir_entry was made opaque in 3.10 with the following commit.
