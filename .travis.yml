@@ -1,7 +1,5 @@
 language: c
 
-install: make
-
 matrix:
   include:
     # works on Precise and Trusty
@@ -10,10 +8,6 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - linux-headers-$(uname -r)
-            - libnotify-dev
-            - pkg-config
-            - libgtk-3-dev 
           packages:
             - g++-7
       env:
@@ -21,3 +15,6 @@ matrix:
 
 before_install:
     - eval "${MATRIX_EVAL}"
+
+install:
+    - sudo apt install linux-headers-$(uname -r) libnotify-dev pkg-config libgtk-3-dev
