@@ -10,7 +10,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-            - libsystemd-daemon-dev
+            - libsystemd-journal-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: linux
