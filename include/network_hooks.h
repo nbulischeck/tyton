@@ -42,7 +42,7 @@ struct proc_dir_entry {
 	umode_t mode;
 	u8 namelen;
 	char inline_name[];
-} __randomize_layout;
+};
 
 struct net_entry {
 	const char *name;
