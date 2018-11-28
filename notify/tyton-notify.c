@@ -7,6 +7,10 @@
 #include <libnotify/notify.h>
 #include <systemd/sd-journal.h>
 
+#ifndef SD_JOURNAL_SYSTEM
+#define SD_JOURNAL_SYSTEM SD_JOURNAL_SYSTEM_ONLY
+#endif
+
 struct view { const char *s; size_t len; };
 
 void destroy(char **args){

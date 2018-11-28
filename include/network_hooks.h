@@ -1,7 +1,25 @@
 #ifndef NETWORK_HOOKS_H
 #define NETWORK_HOOKS_H
 
-#include <linux/proc_fs.h> /* proc_write_t */
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,18,0)
+
+#include <linux/proc_fs.h>
+
+#else
+
+typedef int (*proc_write_t)(struct file *, char *, size_t);
+
+#endif
+
+
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,11,0)
+
+typedef struct refcount_struct {
+	atomic_t refs;
+} refcount_t;
+
+#endif
 
 /*
 	struct proc_dir_entry was made opaque in 3.10 with the following commit.
@@ -38,7 +56,7 @@ struct proc_dir_entry {
 	umode_t mode;
 	u8 namelen;
 	char inline_name[];
-} __randomize_layout;
+};
 
 struct net_entry {
 	const char *name;
