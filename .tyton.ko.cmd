@@ -1,1 +1,0 @@
-cmd_/home/chirality/Desktop/github/tyton/tyton.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -T ./scripts/module-common.lds  --build-id  -o /home/chirality/Desktop/github/tyton/tyton.ko /home/chirality/Desktop/github/tyton/tyton.o /home/chirality/Desktop/github/tyton/tyton.mod.o ;  true
