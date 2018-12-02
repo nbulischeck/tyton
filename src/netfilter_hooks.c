@@ -9,6 +9,33 @@
 #define nf_entry_dereference(e) \
 	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
 
+const char *mod_wl[] = {
+	"iptable_nat",
+	"iptable_mangle",
+	"iptable_filter",
+	"nf_defrag_ipv4",
+	"nf_conntrack_ipv4",
+	"br_netfilter"
+};
+
+int in_module_whitelist(struct module *mod){
+	int i, name_len;
+
+	if (!mod->name)
+		return -1;
+
+	name_len = strlen(mod->name);
+
+	for (i = 0; i < sizeof(mod_wl)/sizeof(mod_wl[0]); i++){
+		if (name_len != strlen(mod_wl[i]))
+			continue;
+		if (strncmp(mod->name, mod_wl[i], name_len))
+			return 1;
+	}
+
+	return 0;
+}
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,16,0)
 
 static void search_hooks(const struct nf_hook_entries *e){
@@ -21,8 +48,8 @@ static void search_hooks(const struct nf_hook_entries *e){
 		addr = (unsigned long)e->hooks[i].hook;
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
-		if (mod){
-			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
+		if (mod && !in_module_whitelist(mod)){
+				ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
 			ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
@@ -103,7 +130,7 @@ static void search_hooks(const struct nf_hook_entries *e){
 		addr = (unsigned long)e->hooks[i].hook;
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
-		if (mod){
+		if (mod && !in_module_whitelist(mod)){
 			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
