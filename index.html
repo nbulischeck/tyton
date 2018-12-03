@@ -400,7 +400,7 @@ if (!ckt(addr)){
                     <a name="detected-rootkits"></a>
                     <h1>Detected Rootkits</h1>
 
-                    <p>Below is a table of rootkits and whether or not Tyton can detect them based on currently implemented features.</p>
+                    <p>Below is a table of rootkits and whether or not Tyton can detect them based on currently implemented features. Common features are those that you will commonly find in even the most basic kernel-mode rootkits. Advanced features are those that provide increased evasion features but are somewhat challenging or uncommon to implement.</p>
 
                     <dl>
                         <dt>Found</dt>
@@ -411,38 +411,52 @@ if (!ckt(addr)){
                         <dd>The rootkit has not implemented this feature.</dd>
                     </dl>
 
+					<h2>Common Features</h2>
+
                     <table>
                         <tr>
                             <th>Rootkit</th>
                             <th>Hidden Module</th>
-                            <th>SCT Hooking</th>
+                            <th>SCT/IDT Hooking</th>
                             <th>Netfilter Hooking</th>
-                            <th>Network Hooking</th>
-                            <th>Zeroed Inodes</th>
-                            <th>Proc Hooking</th>
-                            <th>IDT Hooking</th>
                         </tr>
                         <tr>
                             <td><a href="https://github.com/f0rb1dd3n/Reptile" target="_blank">Reptile</a></td>
                             <td>Found</td>
                             <td><a href="https://github.com/nbulischeck/tyton/issues/15" target="_blank">Evaded</a></td>
                             <td>Found</td>
-                            <td>N/a</td>
-                            <td>N/a</td>
-                            <td>N/a</td>
-                            <td>N/a</td>
                         </tr>
                         <tr>
                             <td><a href="https://github.com/m0nad/Diamorphine" target="_blank">Diamorphine</a></td>
                             <td>Found</td>
                             <td>Found</td>
                             <td>Found</td>
+                        </tr>
+                    </table>
+
+					<h2>Advanced Features</h2>
+
+                    <table>
+                        <tr>
+                            <th>Rootkit</th>
+                            <th>Network Hooking</th>
+                            <th>Zeroed Inodes</th>
+                            <th>Proc Hooking</th>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/f0rb1dd3n/Reptile" target="_blank">Reptile</a></td>
                             <td>N/a</td>
+                            <td>N/a</td>
+                            <td>N/a</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/m0nad/Diamorphine" target="_blank">Diamorphine</a></td>
                             <td>N/a</td>
                             <td>N/a</td>
                             <td>N/a</td>
                         </tr>
                     </table>
+
         </section>
     </div>
 

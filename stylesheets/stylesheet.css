@@ -236,7 +236,7 @@ Full-Width Styles
 #forkme_banner {
   display: block;
   position: absolute;
-  top: 110px;
+  top: 60%;
   right: 10px;
   z-index: 10;
   padding: 10px 20px 10px 50px;
@@ -245,6 +245,22 @@ Full-Width Styles
   background-size: 25px;
   font-weight: 700;
   border: none;
+}
+
+@media (max-width: 479px){
+	#forkme_banner {
+	  display: block;
+	  position: absolute;
+	  top: 80%;
+	  left: 10px;
+	  z-index: 10;
+	  padding: 10px 20px 10px 60px;
+	  color: #fff;
+	  background: url('../images/github.svg') #0090ff no-repeat 8% 50%;
+	  background-size: 25px;
+	  font-weight: 700;
+	  border: none;
+	}
 }
 
 #forkme_banner:hover {
