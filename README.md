@@ -8,6 +8,8 @@
 
 Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 
+For more information, visit [Tyton's website](https://nbulischeck.github.io/tyton/).
+
 ## Detected Attacks
 
 **Hidden Modules**
@@ -23,8 +25,6 @@ Linux Kernel-Mode Rootkit Hunter for 4.4.0-31+.
 **Process Fops Hooking**
 
 **Interrupt Descriptor Table Hooking**
-
-&nbsp;
 
 &nbsp;
 
