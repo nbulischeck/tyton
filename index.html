@@ -1,352 +1,455 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<link rel="apple-touch-icon" sizes="57x57" href="favicons/apple-icon-57x57.png">
-		<link rel="apple-touch-icon" sizes="60x60" href="favicons/apple-icon-60x60.png">
-		<link rel="apple-touch-icon" sizes="72x72" href="favicons/apple-icon-72x72.png">
-		<link rel="apple-touch-icon" sizes="76x76" href="favicons/apple-icon-76x76.png">
-		<link rel="apple-touch-icon" sizes="114x114" href="favicons/apple-icon-114x114.png">
-		<link rel="apple-touch-icon" sizes="120x120" href="favicons/apple-icon-120x120.png">
-		<link rel="apple-touch-icon" sizes="144x144" href="favicons/apple-icon-144x144.png">
-		<link rel="apple-touch-icon" sizes="152x152" href="favicons/apple-icon-152x152.png">
-		<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-icon-180x180.png">
-		<link rel="icon" type="image/png" sizes="192x192"  href="favicons/android-icon-192x192.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="96x96" href="favicons/favicon-96x96.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
-		<link rel="manifest" href="favicons/manifest.json">
-		<meta name="msapplication-TileColor" content="#ffffff">
-		<meta name="msapplication-TileImage" content="favicons/ms-icon-144x144.png">
-		<meta name="theme-color" content="#ffffff">
+<head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Tyton is a Linux kernel-mode rootkit hunter." />
 
-		<title>Tyton</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700italic,700' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:300,300italic,700,700italic' rel='stylesheet' type='text/css'>
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
+</head>
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
+<title>Tyton</title>
+</head>
 
-		<style>
-			p > code.hljs { display: inline; }
-		</style>
+<body>
 
-		<div class="reveal">
-			<div class="slides">
-			<section>
-				<h1 style="color: #1b91ff">Tyton</h1>
-				<p>Linux Kernel-Mode Rootkit Hunter</p>
-			</section>
-			<section>
-				<h2>Why Tyton?</h2>
-				<img src="images/tyton-large.jpg"/>
-				<aside class="notes">
-					Firstly, the name comes from "Tytonidae", the family for Barn owls (they're well-adapted hunters). The reason for creating this project stems for my (Nick) interest in Linux Kernel internals. I wrote a pretty interesting rootkit a while back and was wondering how easy (or hard) it would be to defend against.
-				</aside>
-			</section>
-			<section>
-				<section>
-					<h2>Features</h2>
-					<p class="fragment" style="color: #1b91ff">Hidden Modules</p>
-					<p class="fragment" style="color: #1b91ff">Syscall Table Hooking</p>
-					<p class="fragment" style="color: #1b91ff">Network Protocol Hooking</p>
-					<p class="fragment" style="color: #1b91ff">Netfilter Hooking</p>
-					<p class="fragment" style="color: #1b91ff">Zeroed Process Inodes</p>
-					<p class="fragment" style="color: #1b91ff">Process Fops Hooking</p>
-					<p class="fragment" style="color: #1b91ff">Interrupt Descriptor Table Hooking</p>
-				</section>
-				<section>
-					<h3>Hidden Modules</h3>
-					<img src="images/kset.svg"/>
-					<aside class="notes">
-						Sysfs is a virtual filesystem that describes the devices known to the system from various viewpoints. By default it is mounted on /sys. Sysfs contains a bunch of kernel sets or ksets which in turn contain multiple kernel objects or kobjects. The kset "module_kset" within sysfs holds kobject references to all loaded kernel modules. By traversing this list, we can resolve each kobject back to its containing object (its referenced kernel module). When compared with the current module list entries from find_module(kobj->mod->name), we can uncover modules who unlinked themselves from the list.
-					</aside>
-				</section>
-				<section>
-					<h3>Syscall Table Hooking</h3>
-					<img src="images/kmm-64.svg"/>
-						<aside class="notes">
-							This diagram shows how the kernel gets mapped into memory. We can see that there are two distinct sections for "Kernel Text Mapping" and "Module Mapping Space". Kernel Text Mapping, also referred to as the Core Kernel Text section, contains the Kernel's text and data sections. We can iterate through the syscall table to see if any functions point outside of this section. If they do not point within the core kernel text section, it is likely that they have been hooked but to make sure we search all loaded modules to verify this.
-						</aside>
-					</section>
-					<section>
-						<h3>Network Protocol Hooking</h3>
-							<pre><code data-trim data-noescape class="C">
-							static const struct seq_operations tcp4_seq_ops = {
-							  .show		= tcp4_seq_show,
-							  .start	= tcp_seq_start,
-							  .next		= tcp_seq_next,
-							  .stop		= tcp_seq_stop,
-							};
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+            <a id="forkme_banner" href="https://github.com/nbulischeck/tyton" target="_blank">View on GitHub</a>
+            <h1 id="project_title">Tyton</h1>
+            <h2 id="project_tagline">Linux Kernel-mode Rootkit Hunter</h2>
+        </header>
+    </div>
 
-							static const struct file_operations proc_net_seq_fops = {
-							  .open		= seq_open_net,
-							  .read		= seq_read,
-							  .write	= proc_simple_write,
-							  .llseek	= seq_lseek,
-							  .release	= seq_release_net,
-							};
-							</code></pre>
-							<aside class="notes">
-								"tcp4_seq_ops" is obviously tcp4 only. "proc_net_seq_fops" is for everyone. We're covering tcp4, tcp6, udp4, udp6, udplite4, and udplite6.
-							</aside>
-					</section>
-					<section>
-						<h4>Network Protocol Hooking</h4>
-							<pre><code data-trim data-noescape class="C">
-								static int __net_init tcp4_proc_init_net(struct net *net){
-								  if (!proc_create_net_data(
-								      "tcp", ..., &tcp4_seq_ops, ..., &tcp4_seq_afinfo
-								  )) return -ENOMEM;
-								  return 0;
-								}
+    <div id="main_content_wrap" class="outer">
+        <section id="main_content" class="inner">
 
-								struct proc_dir_entry *proc_create_net_data(...){
-								  struct proc_dir_entry *p;
-								  p = proc_create_reg(name, mode, &parent, data);
-								  p->proc_fops = &proc_net_seq_fops;
-								  p->seq_ops = ops;
-								  return proc_register(parent, p);
-								}
-							</code></pre>
-							<aside class="notes">
-								This code shows how networks are registered in the proc filesystem (see /proc/self/net). People used to hook tcp4_seq_afinfo because that's what contained the operations, but it was moved out into {tcp4, tcp6, ...}_seq_ops. If you hook the "show" function, you can hide from netstat.
-							</aside>
-					</section>
-					<section>
-						<h3>Netfilter Hooking</h3>
-							<pre><code data-trim data-noescape class="C">
-								int nfhook_init(void){
-								  nfho.hook = (nf_hookfn *) nfhook;
-								  nfho.hooknum = NF_INET_PRE_ROUTING;
-								  nfho.pf = AF_INET;
-								  nfho.priority = NF_IP_PRI_FIRST;
+            <h1>Table of Contents</h1>
+            <ul>
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#kernel-rootkits">Kernel-mode Rootkits</a></li>
+                <li><a href="#common-rk-functionality">Common Rootkit Functionality</a></li>
+                <li><a href="#detection-methodology">Rootkit Detection Methodology</a>
+                    <ul>
+                        <li><a href="#hidden-modules">Hidden Modules</a></li>
+                        <li><a href="#sct-idt-hooking">Syscall Table Hooking</a></li>
+                        <li><a href="#netfilter-hooking">Netfilter Hooking</a></li>
+                        <li><a href="#network-hooking">Network Protocol Hooking</a></li>
+                        <li><a href="#proc-fops-hooking">Process File Operations Hooking</a></li>
+                        <li><a href="#zeroed-proc">Zeroed Process Inodes</a></li>
+                    </ul>
+                </li>
+                <li><a href="#detected-rootkits">Detected Rootkits</a></li>
+            </ul>
 
-								  #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,13,0)
-								    return nf_register_net_hook(&init_net, &nfho);
-								  #else
-								    return nf_register_hook(&nfho);
-								  #endif
-								}
-							</code></pre>
-							<aside class="notes">
-								Netfilter hooks have a legitimate use, but it is unlikely that they would be present beyond those made for iptables, ebtables, and friends. We can search through all possible Netfilter hook combinations (protocol and hook number) and report all modules that have active Netfilter hooks. They are uncommonly used in LKM rootkits to create backdoors by intercepting packets used to authenticate for port knocking.
-							</aside>
-					</section>
-					<section>
-						<h3>Zeroed Process Inodes</h3>
-							<pre><code data-trim data-noescape class="C">
-								while (size > 0){
-								  if (d->d_ino == 0){
-									buffer = kzalloc(d->d_namlen+1, GFP_KERNEL);
-									memcpy(buffer, d->d_name, d->d_namlen);
-									ALERT("Hidden Process [/proc/%s].\n", buffer);
-									kfree(buffer);
-								  }
-								  reclen = ALIGN(sizeof(*d) + d->d_namlen, sizeof(u64));
-								  d = (struct linux_dirent *)((char *)d + reclen);
-								  size -= reclen;
-								}
-							</code></pre>
-							<aside class="notes">
-								The code shown iterates over the returned directory entries. If a directory entry has an inode set to 0, print the process directory. After, align to the next entry and loop. An inode of 0 is typically ignored from directory listings which makes it a good candidate for rootkits to set directories to in order to hide their files, or in this case, malicious process.
-							</aside>
-					</section>
-					<section>
-						<h3>Process Fops Hooking</h3>
-							<pre><code data-trim data-noescape class="C">
-							fp = filp_open("/proc", O_RDONLY, S_IRUSR);
+            <a name="introduction"></a>
+            <h1>Introduction</h1>
+            <p>Loadable kernel modules, LKMs for short, are an integral companion to the Linux kernel. Typically, LKMs are used to add support for new hardware (as device drivers) or file systems or add additional system calls. Without LKMs, an operating system would have to include all possible anticipated functionality. This is borderline impossible to do when developing a platform to be used with everything from a smartphone to a server. LKMs provide additional functionality to the kernel, and by extension the user of the computer, and can be safely added or removed when they are needed or not needed. Unfortunately, this functionality can be abused to create malware, namely kernel-mode rootkits. Linux kernel-mode rootkits are significantly more difficult to detect than most other malware when performed properly as the functionality they provide exposes a flawed trust model a user has in the information that his or her system returns. Therefore, developing multiple methods of detection on more advanced rootkits would benefit system administrators globally.</p>
 
-							#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
-							  addr = (unsigned long)fp->f_op->iterate;
-							#else
-							  addr = (unsigned long)fp->f_op->readdir;
-							#endif
+            <a name="kernel-rootkits"></a>
+            <h1>Kernel-mode Rootkits</h1>
 
-							if (!ckt(addr)){
-							  mod = get_module_from_addr(addr);
-							  if (mod){
-							    ALERT("Module [%s] hijacked /proc fops.\n", mod->name);
-							  } ...
-							}
-							</code></pre>
-							<aside class="notes">
-								The code shown opens a file pointer to and checks to see if iterate or readdir point outside the core kernel text section. Again, if it does, it has been modified by an outside process, so we will attempt to identify the (potential) module that is doing it.
-							</aside>
-					</section>
-					<section>
-						<h3>IDT Hooking</h3>
-						<img src="images/kmm-64.svg"/>
-						<aside class="notes">
-							This diagram is the same from "Syscall Hooking" and shows how the kernel gets mapped into memory. We can see that there are two distinct sections for "Kernel Text Mapping" and "Module Mapping Space". Kernel Text Mapping, also referred to as the Core Kernel Text section, contains the Kernel's text and data sections. We can iterate through the "Interrupt Descriptor Table" to see if any vectors point outside of this section. If they do not point within the core kernel text section, it is likely that they have been hooked but to make sure we search all loaded modules to verify this.
-						</aside>
-					</section>
-				</section>
-			<section>
-				<section>
-					<h2>Additional Features</h2>
-					<p class="fragment" style="color: #1b91ff">Userland Notifications</p>
-				</section>
-				<section>
-					<h3>Userland Notification</h3>
-					<img src="images/notify-alert.png"/>
-					<img src="images/notify-warning.png"/>
-					<img src="images/notify-error.png"/>
-					<aside class="notes">
-						Users (including myself) do not actively monitor their journald logs, so a userland notification daemon has been included to monitor journald logs and display them to the user using libnotify. Notifications are enabled after install by XDG autorun, so if your DM does not have /etc/xdg/autostart it will fail. Alerts are clear signs of LKM attacks, warnings indicate possible issues with your environment, and errors are typically a result of an unstable kernel/environment.
-					</aside>
-				</section>
-			</section>
-			<section>
-				<section>
-					<h2>Building</h2>
-					<p class="fragment" style="color: #1b91ff">make</p>
-				</section>
-				<section>
-					<h3>Dependencies</h3>
-					<p class="fragment" style="color: #1b91ff">Linux Kernel 4.4.0-31 or greater</p>
-					<p class="fragment" style="color: #1b91ff">Corresponding Linux Kernel Headers</p>
-					<p class="fragment" style="color: #1b91ff">GCC</p>
-					<p class="fragment" style="color: #1b91ff">Make</p>
-					<p class="fragment" style="color: #1b91ff">Libnotify</p>
-					<p class="fragment" style="color: #1b91ff">Package Config</p>
-					<p class="fragment" style="color: #1b91ff">GTK3</p>
-				</section>
-				<section>
-					<h4>Ubuntu/Debian/Kali Dependencies</h4>
-					<pre><code data-trim data-noescape class="bash">
-						sudo apt install -y
-						  linux-headers-$(uname -r) \
-						  gcc \
-						  make \
-						  libnotify-dev \
-						  pkg-config \
-						  libgtk-3-dev
-					</code></pre>
-				</section>
-				<section>
-					<h4>Arch Dependencies</h4>
-					<pre><code data-trim data-noescape class="bash">
-						sudo pacman -S \
-						  linux-headers \
-						  gcc \
-						  make \
-						  libnotify \
-						  pkgconfig \
-						  gtk3
-					</code></pre>
-				</section>
-			</section>
-			<section>
-				<section>
-					<h2>Installing</h2>
-					<p class="fragment" style="color: #1b91ff">make install</p>
-				</section>
-				<section>
-					<h3>Kernel Module Arguments</h3>
-					<p class="fragment" style="color: #1b91ff">sudo insmod tyton.ko timeout=X # mins</p>
-				</section>
-			</section>
-			<section>
-				<section>
-					<h2>Uninstalling</h2>
-					<p class="fragment" style="color: #1b91ff">make uninstall</p>
-				</section>
-			</section>
-			<section>
-				<section>
-					<h2>RPM Packaging for CentOS and Fedora</h2>
-					<p class="fragment" style="color: #1b91ff">dnf install / yum install</p>
-				</section>
-				<section>
-					<h3>Split Packages</h3>
-					<p class="fragment">Separate packages for tyton and tyton-notify</p>
-				</section>
-				<section>
-					<h4>Spec files are the building blocks of RPMs</h4>
-					<pre><code data-trim data-noescape>
-						Summary: Linux kernel module for Tyton
-						Name: dkms-tyton
-						Version: master
-						Release: 1%{?dist}
-						
-						...
+            <p>Let's explore why a malware author would want to develop a rootkit that lives inside the kernel. Rootkits can either be in user-land or kernel-land. Figure 1 details the theoretical privilege rings associated with user-land and kernel-land. User-land refers to privilege ring 3, while kernel-land refers to privilege ring 0. The kernel is responsible for handling a lot of the user’s system’s functionality whether that be browsing local files or using a web browser to browse the Internet. This is done through the implementation of system calls - low-level functions that run in a kernel context.</p>
 
-						BuildArch: noarch
-						Requires: gcc, make, systemd-devel, kernel-devel
-						Requires(post): dkms
-						Requires(preun): dkms
-					</code></pre>
-				</section>
-				<section>
-					<h4>Buildroots and %install</h4>
-					<pre><code data-trim data-noescape>
-						%install
-						
-						...
-						
-						%{__mkdir_p} %{buildroot}%{_usrsrc}/%{dkms_name}-%{dkms_vers}/
-						%{__cp} -a ./* %{buildroot}%{_usrsrc}/%{dkms_name}-%{dkms_vers}/
-						
-						...
-					</code></pre>
-				</section>
-				<section>
-					<h4>Post-install and Pre-uninstall</h4>
-					<pre><code data-trim data-noescape>
-						%post
-						# Add to DKMS registry
-						dkms add -m %{dkms_name} -v %{dkms_vers} || :
-						# Rebuild and make available for the currenty running kernel
-						dkms build -m %{dkms_name} -v %{dkms_vers} || :
-						dkms install -m %{dkms_name} -v %{dkms_vers} --force || :
+            <figure>
+                <center>
+                    <img src="images/priv-rings.svg" alt="x86 Privilege Rings" />
+                    <figcaption>
+                        Fig. 1. Privilege rings for x86, along with their common uses.</a>
+                    </figcaption>
+                </center>
+            </figure>
 
-						%preun
-						# Remove all versions from DKMS registry
-						dkms remove -m %{dkms_name} -v %{dkms_vers} --all || :
-					</code></pre>
-				</section>
-				<section>
-					<h4>Packaging</h4>
-					<pre><code data-trim data-noescape>
-							%files
-							%defattr(-, root, root, 0755)
-							%{_usrsrc}/%{dkms_name}-%{dkms_vers}/
-					</code></pre>
-				</section>
-			</section>
-			</div>
-		</div>
+            <p>For example, a library function like printf eventually always calls write to write whatever information to whatever peripheral you're sending it to. You might be asking now, "but if write is inside the kernel, how does my input get inside the kernel to run the code?" Without diving into the Interrupt Descriptor Table here, there exists an assembly instruction <code>int 0x80</code>. In assembly, when a syscall is set to execute, this instruction is emitted from the compiler. This instruction <code>int 0x80</code> triggers a maskable interrupt which transfers control from the user to the kernel (ring 3 to ring 0). For completeness I will mention that this is no longer the standard way of doing it (SYSENTER/SYSEXIT and SYSCALL exist now) but the concept is the same; the user is expecting the kernel to handle this call and return the correct results. When rootkits become part of the kernel, they are able to modify on-the-fly what information the user receives.</p>
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
+            <a name="common-rk-functionality"></a>
+            <h1>Common Rootkit Functionality</h1>
 
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+            <p>Rootkits often have core functionality that make them similar. The most common rootkit functions involve hiding the attacker’s malicious files, processes, or network connections, providing unauthorized access for future events (backdoors), deploying keyloggers, and deleting system logs that would reveal the attacker’s presence. In the next section, we’ll discuss the implementation-specific details that designing kernel-module rootkit functions entail.</p>
+
+            <a name="detection-methodology"></a>
+            <h1>Rootkit Detection Methodology</h1>
+
+            <p>This section will detail how Tyton attempts to uncover kernel-mode rootkits.</p>
+
+            <a name="hidden-modules"></a>
+            <h2>Hidden Modules</h2>
+
+            <p>Sysfs contains a multitude of ksets or kernel sets which in turn contain multiple kernel objects or kobjects. The kset <code>module_kset</code> within sysfs holds kobject references to all loaded kernel modules. By traversing this list, we can resolve each kobject back to its containing object (its referenced kernel module). When compared with the current module list entries from <code>find_module(kobj->mod->name))</code>, we can uncover modules who unlinked themselves from the list. For more detail on the relationship between ksets and kobjects, see Fig. 2.</p>
+
+            <figure>
+                <center>
+                    <img src="images/kset.svg" alt="Kset-Kobject relationship" />
+
+                    <figcaption>
+                        Fig. 2. Kset-Kobject relationship.</a>
+                    </figcaption>
+                </center>
+            </figure>
+
+            <p>The following code is how Tyton iterates over each kobject and determines if the module is trying to hide or not.</p>
+
+            <pre><code class="C">list_for_each_entry_safe(cur, tmp, &mod_kset->list, entry){
+  if (!kobject_name(tmp))
+    break;
+
+  kobj = container_of(tmp, struct module_kobject, kobj);
+
+  if (kobj && kobj->mod && kobj->mod->name){
+    mutex_lock(&module_mutex);
+    if(!find_module(kobj->mod->name))
+      ALERT("Module [%s] hidden.\n", kobj->mod->name);
+    mutex_unlock(&module_mutex);
+  }
+}
+</code></pre>
+
+            <a name="sct-idt-hooking"></a>
+            <h2>Syscall/Interrupt Descriptor Table Hooking</h2>
+
+            <p>Tyton searches through the syscall table to see if any functions point outside the core kernel text section. If they do not point within the core kernel text section, it is likely that they have been hooked but to make sure we search all loaded modules to verify this. Figure 3 depicts the spec of the kernel memory map for x86_64. <a href="https://www.kernel.org/doc/Documentation/x86/x86_64/mm.txt" target="_blank">You can find it here.</a> We can see here that the kernel text mapping resides in its own region and kernel modules are mapped into the space directly above them. Using this, we can determine where the function address resides and make a judgement call on whether or not it has been hooked.</p>
+
+            <figure>
+                <center>
+                    <img src="images/kmm-64.png" alt="Kernel memory map in x86_64" />
+                    <figcaption>
+                        Fig. 3. Kernel memory map in x86_64.</a>
+                    </figcaption>
+                </center>
+            </figure>
+
+            <p>The code that the kernel uses to check if an address resides within this text mapping is below. <code>_stext</code> and <code>_etext</code> refer to the start of the text mapping and the end respectively. <a href="https://elixir.bootlin.com/linux/v4.15/source/kernel/extable.c#L75">You can find it here.</a>
+                <p>
+
+                    <pre><code class="C">int notrace
+core_kernel_text(unsigned long addr)
+{
+	if (addr >= (unsigned long)_stext && addr < (unsigned long)_etext)
+		return 1;
+
+	if (system_state < SYSTEM_RUNNING && init_kernel_text(addr))
+		return 1;
+	return 0;
+}
+</code></pre>
+
+                    <p>Tyton iterates over the syscall table and leverages this function to verify the integrity of the syscall table. <code>sct[i]</code> indicates the i'th syscall. <code>get_module_from_addr</code> attempts to retrieve the kernel module associated with the hook. If that returns <code>NULL</code>, then the module is hidden. In that case, we use an alternative method to resolve hidden modules.</p>
+
+                    <pre><code class="C">for (i = 0; i < NR_syscalls; i++){
+		addr = sct[i];
+		if (!ckt(addr)){
+			mutex_lock(&module_mutex);
+			mod = get_module_from_addr(addr);
+			if (mod){
+				ALERT("Module [%s] hooked syscall [%d].\n", mod->name, i);
+			} else {
+				mod_name = find_hidden_module(addr);
+				if (mod_name)
+					ALERT("Hidden module [%s] hooked syscall [%d].\n", mod_name, i);
+			}
+			mutex_unlock(&module_mutex);
+		}
+	}
+</code></pre>
+
+                    <a name="netfilter-hooking"></a>
+                    <h2>Netfilter Hooking</h2>
+
+                    <p>Tyton searches through all possible Netfilter hook combinations and reports all modules that have active Netfilter hooks. Netfilter hooks have a legitimate use, but it is unlikely that they would be present beyond those made for iptables, ebtables, and friends. They are commonly used in kernel-mode rootkits to create backdoors by intercepting packets used to authenticate for port knocking. If you'd like to learn more about implementing Netfilter hooks in your kernel, you can find that information <a href="https://www.netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO-3.html" target="_blank">here</a>.</p>
+
+                    <p>The code involved is quite cumbersome as Netfilter functions have been changed quite frequently recently. Another problem with accessing this information is that there is no friendly API for it. For example, all three of the following code blocks perform the same action - iterating over an array of netfilter hooks.</p>
+
+                    <p>For kernel versions &ge; 4.14, we can steal the <code>nf_hook_entry_head</code> function as future functions rely on the same prototype with it returning a <code>struct nf_hook_entries</code> up through 4.19 (so far).</p>
+
+                    <pre><code class="C">static struct nf_hook_entries __rcu **
+nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum, struct net_device *dev)
+{
+	if (pf != NFPROTO_NETDEV)
+		return net->nf.hooks[pf]+hooknum;
+	if (hooknum == NF_NETDEV_INGRESS){
+		if (dev && dev_net(dev) == net)
+			return &dev->nf_hooks_ingress;
+	}
+	return NULL;
+}
+
+int
+analyze_netfilter(void)
+{
+	int i, j;
+	struct nf_hook_entries *p;
+	struct nf_hook_entries __rcu **pp;
+
+	for (i = 0; i < NFPROTO_NUMPROTO; i++){
+		for (j = 0; j < NF_MAX_HOOKS; j++){
+			pp = nf_hook_entry_head(&init_net, i, j, NULL);
+			if (!pp)
+				return -EINVAL;
+
+			p = nf_entry_dereference(*pp);
+			if (!p)
+				continue;
+
+			search_hooks(p);
+		}
+	}
+
+	return 0;
+}
+</code></pre>
+
+                    <p>For kernel versions &lt; 4.14, we don't have <code>struct nf_hook_entries</code>. We have to use the kernel's built-in list mechanism, <code>struct list_head</code>. This means that our differences won't stop at simply iterating over the netfilter hooks, but continue into how we can access ther data.</p>
+
+                    <pre><code class="C">static struct list_head *
+nf_find_hook_list(struct net *net, int pf, unsigned int hooknum, struct net_device *dev)
+{
+	if (pf != NFPROTO_NETDEV)
+		return &net->nf.hooks[pf][hooknum];
+	if (hooknum == NF_NETDEV_INGRESS){
+		if (dev && dev_net(dev) == net)
+			return &dev->nf_hooks_ingress;
+	}
+	return NULL;
+}
+
+int
+analyze_netfilter(void)
+{
+	int i, j;
+	for (i = 0; i < NFPROTO_NUMPROTO; i++){
+		for (j = 0; j < NF_MAX_HOOKS; j++){
+			search_hooks(nf_find_hook_list(&init_net, i, j, NULL));
+		}
+	}
+	return 0;
+}
+</code></pre>
+
+                    <p>Now we still have two access them, which requires even more kernel version-specific code. Such is the cost of supporting multiple kernel versions.</p>
+
+                    <p>For &ge; 4.14, we need to iterate over a <code>struct nf_hook_entries *</code>. This is simple as inside that struct is an integer called <code>num_hook_entries</code>. We can then use the <code>hooks</code> array inside the same structure to grab every hook's address and check it against the kernel text mapping.</p>
+
+                    <pre><code class="C">static void
+search_hooks(const struct nf_hook_entries *e)
+{
+	int i;
+	const char *mod_name;
+	unsigned long addr;
+	struct module *mod;
+
+	for (i = 0; i < e->num_hook_entries; i++){
+		addr = (unsigned long)e->hooks[i].hook;
+		mutex_lock(&module_mutex);
+		mod = get_module_from_addr(addr);
+		if (mod){
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
+		} else {
+			mod_name = find_hidden_module(addr);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
+		}
+		mutex_unlock(&module_mutex);
+	}
+}
+</code></pre>
+
+                    <p>For &lt; 4.14, we need to iterate over a kernel list. This is done with <code>list_for_each_entry</code> or <code>list_for_each_entry_safe</code>.</p>
+
+                    <pre><code class="C">static void
+search_hooks(const struct list_head *hook_list)
+{
+	const char *mod_name;
+	unsigned long addr;
+	struct module *mod;
+	struct nf_hook_ops *elem;
+
+	list_for_each_entry(elem, hook_list, list){
+		addr = (unsigned long)elem->hook;
+		mutex_lock(&module_mutex);
+		mod = get_module_from_addr(addr);
+		if (mod){
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
+		} else {
+			mod_name = find_hidden_module(addr);
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
+		}
+		mutex_unlock(&module_mutex);
+	}
+}
+</code></pre>
+
+                    <a name="network-hooking"></a>
+                    <h2>Network Protocol Hooking</h2>
+
+                    <p>Tyton grabs the <code>init_net.proc_net</code> process directory entry (on your filesystem this is equivalent to <code>/proc/net/</code>) and iterates over every subdirectory in the red-black tree looking for subdirectories named tcp, tcp6, udp, udp6, udplite, and udplite6. Once we've acquired the directory entry for the specific network protocol, we can grab the function pointers for <code>seq_fops</code> and <code>seq_ops</code> - namely we are looking for <code>seq_fops->llseek</code>, <code>seq_fops->read</code>, <code>seq_fops->release</code>, and <code>seq_ops->show</code>. In doing this, we can verify that the operation function pointers of network protocols are still inside the core kernel text section and not being manipulated by a kernel module. These are commonly hooked to hide network traffic or exposed ports from netstat and other user-land interfaces.</p>
+
+                    <p>To iterate over multiple interfaces and check the same operations, I devised a simple struct called <code>net_entry</code>. This struct holds the name of the entry we're searching for, and once found, the <code>/proc</code> directory entry.</p>
+
+                    <pre><code class="C">struct net_entry {
+	const char *name;
+	struct proc_dir_entry *entry;	
+};
+
+struct net_entry net[NUM_NET_ENTRIES] = {
+	{"tcp",			NULL},
+	{"tcp6",		NULL},
+	{"udp",			NULL},
+	{"udp6",		NULL},
+	{"udplite",		NULL},
+	{"udplite6",	NULL}
+};
+</code></pre>
+
+                    <p>The following code iterates over a red-black tree (in our case the rb-tree of <code>/proc/net</code>) and searches for an entry with the name of the target string. We can use this to find our target net entries and assign the corresponding <code>struct proc_dir_entry</code>.</p>
+
+                    <pre><code class="C">struct proc_dir_entry *
+find_subdir(struct rb_root *tree, const char *str)
+{
+	struct rb_node *node = rb_first(tree);
+	struct proc_dir_entry *e = NULL;
+
+	while (node){
+		e = rb_entry(node, struct proc_dir_entry, subdir_node);
+		if (strcmp(e->name, str) == 0)
+			return e;
+		node = rb_next(node);
+	}
+
+	return NULL;
+}
+</code></pre>
+
+                    <p>We can now iterate over every net entry and grab their <code>seq_ops</code> and <code>seq_fops</code>.</p>
+
+                    <pre><code class="C">unsigned long op_addr[4];
+const struct seq_operations *seq_ops;
+const struct file_operations *seq_fops;
+const char *mod_name, *op_string[4] = {
+	"llseek", "read", "release", "show"
+};
+
+for (i = 0; i < NUM_NET_ENTRIES; i++){
+	net[i].entry = find_subdir(&init_net.proc_net->subdir, net[i].name);
+	if (!net[i].entry)
+		continue;
+
+	seq_ops = net[i].entry->seq_ops;
+	seq_fops = net[i].entry->proc_fops;
+
+	op_addr[0] = *(unsigned long *)seq_fops->llseek;
+	op_addr[1] = *(unsigned long *)seq_fops->read;
+	op_addr[2] = *(unsigned long *)seq_fops->release;
+	op_addr[3] = *(unsigned long *)seq_ops->show;
+
+	/* Code to check if all of op_addr is in kernel text mapping */
+}
+</code></pre>
+
+                    <a name="proc-fops-hooking"></a>
+                    <h2>Process File Operations Hooking</h2>
+
+<p>Tyton opens the <code>/proc</code> file pointer and check to see if any file operations (namely <code>iterate</code>) point outside the core kernel text section. This file pointer can be hooked by a rootkit to hide malicious processes by checking each directory entry against a list of processes that it intends to hide. If it finds one, it can simply skip over the directory entry as if it was never there resulting in it not being reported back to the user.</p>
+
+<p>The following code creates a file pointer to <code>/proc</code> and checks to see if <code>iterate</code> or <code>readdir</code> have been hooked by a module.</p>
+
+<pre><code class="C">fp = filp_open("/proc", O_RDONLY, S_IRUSR);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
+	addr = (unsigned long)fp->f_op->iterate;
+#else
+	addr = (unsigned long)fp->f_op->readdir;
+#endif
+
+if (!ckt(addr)){
+	mod = get_module_from_addr(addr);
+	if (mod){
+		ALERT("Module [%s] hijacked /proc fops.\n", mod->name);
+	} ...
+}
+</code></pre>
+
+                    <a name="zeroed-proc"></a>
+                    <h2>Zeroed Process Inodes</h2>
+
+<p>Tyton searches through <code>/proc</code> for all <code>linux_dirent</code> structures and examine the inodes to find any set to zero. An inode of zero is typically ignored from directory listings which makes it a good candidate for rootkits to set directories to in order to hide their files.</p>
+
+<p>The following code iterates over a <code>linux_dirent</code> structure, essentially a 1-D array, to find any directory entries with an inode of 0. What isn't pictured is a custom filldir function that is necessary to fill the <code>linux_dirent</code> structure. This, while challenging/annoying, is not important to understanding the detection.</p>
+
+<pre><code class="C">while (size > 0){
+	if (d->d_ino == 0){
+		buffer = kzalloc(d->d_namlen+1, GFP_KERNEL);
+		memcpy(buffer, d->d_name, d->d_namlen);
+		ALERT("Hidden Process [/proc/%s].\n", buffer);
+		kfree(buffer);
+	}
+	reclen = ALIGN(sizeof(*d) + d->d_namlen, sizeof(u64));
+	d = (struct linux_dirent *)((char *)d + reclen);
+	size -= reclen;
+}
+</code></pre>
+
+                    <a name="detected-rootkits"></a>
+                    <h1>Detected Rootkits</h1>
+
+                    <p>Below is a table of rootkits and whether or not Tyton can detect them based on currently implemented features.</p>
+
+                    <dl>
+                        <dt>Found</dt>
+                        <dd>The rootkit has implemented this feature and it has been found.</dd>
+                        <dt>Evaded</dt>
+                        <dd>The rootkit has implemented this feature and it has <strong>not</strong> been found.</dd>
+                        <dt>N/a</dt>
+                        <dd>The rootkit has not implemented this feature.</dd>
+                    </dl>
+
+                    <table>
+                        <tr>
+                            <th>Rootkit</th>
+                            <th>Hidden Module</th>
+                            <th>SCT Hooking</th>
+                            <th>Netfilter Hooking</th>
+                            <th>Network Hooking</th>
+                            <th>Zeroed Inodes</th>
+                            <th>Proc Hooking</th>
+                            <th>IDT Hooking</th>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/f0rb1dd3n/Reptile" target="_blank">Reptile</a></td>
+                            <td>Found</td>
+                            <td><a href="https://github.com/nbulischeck/tyton/issues/15" target="_blank">Evaded</a></td>
+                            <td>Found</td>
+                            <td>N/a</td>
+                            <td>N/a</td>
+                            <td>N/a</td>
+                            <td>N/a</td>
+                        </tr>
+                        <tr>
+                            <td><a href="https://github.com/m0nad/Diamorphine" target="_blank">Diamorphine</a></td>
+                            <td>Found</td>
+                            <td>Found</td>
+                            <td>Found</td>
+                            <td>N/a</td>
+                            <td>N/a</td>
+                            <td>N/a</td>
+                            <td>N/a</td>
+                        </tr>
+                    </table>
+        </section>
+    </div>
+
+    <div id="footer_wrap" class="outer">
+        <footer class="inner">
+        </footer>
+    </div>
+</body>
+
 </html>
