@@ -11,8 +11,10 @@
 
 const char *mod_wl[] = {
 	"iptable_nat",
+	"iptable_raw",
 	"iptable_mangle",
 	"iptable_filter",
+	"iptable_security",
 	"nf_defrag_ipv4",
 	"nf_conntrack_ipv4",
 	"br_netfilter"
