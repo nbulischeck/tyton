@@ -1,6 +1,7 @@
 #ifndef NETWORK_HOOKS_H
 #define NETWORK_HOOKS_H
 
+#include <linux/fs.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,18,0)
 
