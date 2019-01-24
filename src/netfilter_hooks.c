@@ -28,7 +28,7 @@ int in_module_whitelist(const char *mod_name){
 
 	name_len = strlen(mod_name);
 
-	for (i = 0; i < sizeof(mod_wl)/sizeof(mod_wl[0]); i++){
+	for (i = 0; i < ARRAY_SIZE(mod_wl); i++){
 		if (name_len != strlen(mod_wl[i]))
 			continue;
 		if (strncmp(mod_name, mod_wl[i], name_len) == 0)
