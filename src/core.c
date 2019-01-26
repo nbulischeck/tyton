@@ -2,8 +2,10 @@
 
 #include "core.h"
 #include "proc.h"
+#include "util.h"
 #include "logger.h"
 #include "module_list.h"
+#include "procfs_hooks.h"
 #include "syscall_hooks.h"
 #include "network_hooks.h"
 #include "netfilter_hooks.h"
@@ -13,17 +15,24 @@ static int timeout = 5;
 unsigned long *idt = NULL; /* IDT Table */
 unsigned long *sct = NULL; /* Syscall Table */
 int (*ckt)(unsigned long addr) = NULL; /* Core Kernel Text */
+extern struct list_head tyton_log; /* Logging */
+extern struct rw_semaphore tyton_sem; /* Logging */
 
 static void work_func(struct work_struct *dummy);
 static DECLARE_DELAYED_WORK(work, work_func);
 
 static void execute_analysis(void){
+	down_write(&tyton_sem);
+	clear_list(&tyton_log);
+
 	analyze_modules();
 	analyze_syscalls();
 	analyze_networks();
 	analyze_netfilter();
 	analyze_processes();
 	analyze_interrupts();
+
+	up_write(&tyton_sem);
 }
 
 static void work_func(struct work_struct *dummy){
@@ -48,6 +57,7 @@ static void init_kernel_syms(void){
 
 static int __init init_mod(void){
 	INFO("Inserting Module\n");
+	tyton_init_proc();
 	init_kernel_syms();
 	init_del_workqueue();
 	return 0;
@@ -56,6 +66,7 @@ static int __init init_mod(void){
 static void __exit exit_mod(void){
 	INFO("Exiting Module\n");
 	exit_del_workqueue();
+	tyton_exit_proc();
 }
 
 MODULE_AUTHOR("Nick Bulischeck <nbulisc@clemson.edu>");

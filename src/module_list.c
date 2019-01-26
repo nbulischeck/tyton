@@ -8,6 +8,8 @@
 	((uintptr_t)x < ((uintptr_t)y+(uintptr_t)z)) \
 )
 
+extern struct list_head tyton_log; /* Logging */
+
 const char *find_hidden_module(unsigned long addr){
 	const char *mod_name = NULL;
 	struct kset *mod_kset;
@@ -60,7 +62,8 @@ void analyze_modules(void){
 		if (kobj && kobj->mod && kobj->mod->name){
 			mutex_lock(&module_mutex);
 			if(!find_module(kobj->mod->name))
-				ALERT("Module [%s] hidden.\n", kobj->mod->name);
+				append_data(&tyton_log,
+					"Module [%s] hidden.", kobj->mod->name);
 			mutex_unlock(&module_mutex);
 		}
 	}

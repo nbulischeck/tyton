@@ -9,6 +9,8 @@
 #define nf_entry_dereference(e) \
 	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
 
+extern struct list_head tyton_log; /* Logging */
+
 const char *mod_wl[] = {
 	"iptable_nat",
 	"iptable_raw",
@@ -53,11 +55,13 @@ static void search_hooks(const struct nf_hook_entries *e){
 		mod = get_module_from_addr(addr);
 
 		if (mod && !in_module_whitelist(mod->name)){
-			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
+			append_data(&tyton_log,
+				"Module [%s] controls a Netfilter hook.", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
 			if (mod_name && !in_module_whitelist(mod_name))
-				ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
+				append_data(&tyton_log,
+					"Module [%s] controls a Netfilter hook.", mod_name);
 		}
 
 		mutex_unlock(&module_mutex);
@@ -77,11 +81,13 @@ static void search_hooks(const struct list_head *hook_list){
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
 		if (mod && !in_module_whitelist(mod->name)){
-			ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
+			append_data(&tyton_log,
+				"Module [%s] controls a Netfilter hook.", mod->name);
 		} else {
 			mod_name = find_hidden_module(addr);
 			if (mod_name && !in_module_whitelist(mod_name))
-				ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
+				append_data(&tyton_log,
+					"Module [%s] controls a Netfilter hook.", mod_name);
 		}
 		mutex_unlock(&module_mutex);
 	}

@@ -9,6 +9,7 @@
 #define NUM_NET_ENTRIES 6
 
 extern int (*ckt)(unsigned long addr); /* Core Kernel Text */
+extern struct list_head tyton_log; /* Logging */
 
 struct net_entry net[NUM_NET_ENTRIES] = {
 	{"tcp",			NULL},

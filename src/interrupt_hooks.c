@@ -5,6 +5,7 @@
 
 extern unsigned long *idt; /* IDT Table */
 extern int (*ckt)(unsigned long addr); /* Core Kernel Text */
+extern struct list_head tyton_log; /* Logging */
 
 void analyze_interrupts(void){
 	int i;
@@ -23,11 +24,16 @@ void analyze_interrupts(void){
 			mutex_lock(&module_mutex);
 			mod = get_module_from_addr(addr);
 			if (mod){
-				ALERT("Module [%s] hooked interrupt [%d].\n", mod->name, i);
+				append_data(&tyton_log,
+					"Module [%s] hooked interrupt [%d].",
+					mod->name, i);
 			} else {
 				mod_name = find_hidden_module(addr);
-				if (mod_name)
-					ALERT("Hidden module [%s] hooked interrupt [%d].\n", mod_name, i);
+				if (mod_name){
+					append_data(&tyton_log,
+						"Hidden module [%s] hooked interrupt [%d].",
+						mod_name, i);
+				}
 			}
 			mutex_unlock(&module_mutex);
 		}
