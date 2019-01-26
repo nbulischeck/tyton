@@ -9,17 +9,14 @@ struct module *get_module_from_addr(unsigned long addr){
 
 /* String Functions */
 
-char *build_string(const char *fmt, ...){
+char *build_string(const char *fmt, va_list args){
 	char *line;
-	va_list args;
 
 	line = kmalloc(512, GFP_KERNEL);
 	if (!line)
 		return NULL;
 
-	va_start(args, fmt);
 	vsnprintf(line, 512, fmt, args);
-	va_end(args);
 
 	return line;
 }
