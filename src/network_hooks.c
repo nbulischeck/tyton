@@ -26,6 +26,8 @@ struct proc_dir_entry *find_subdir(struct rb_root *tree, const char *str){
 
 	while (node){
 		e = rb_entry(node, struct proc_dir_entry, subdir_node);
+        if (!e || !e->name)
+			continue;
 		if (strcmp(e->name, str) == 0)
 			return e;
 		node = rb_next(node);
