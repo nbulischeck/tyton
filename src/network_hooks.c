@@ -24,11 +24,14 @@ struct proc_dir_entry *find_subdir(struct rb_root *tree, const char *str){
 	struct rb_node *node = rb_first(tree);
 	struct proc_dir_entry *e = NULL;
 
+	if (!str)
+		return NULL;
+
 	while (node){
 		e = rb_entry(node, struct proc_dir_entry, subdir_node);
 		if (!e || !e->name)
 			return NULL;
-		if (strcmp(e->name, str) == 0)
+		if (strncmp(e->name, str, strlen(str)) == 0)
 			return e;
 		node = rb_next(node);
 	}
