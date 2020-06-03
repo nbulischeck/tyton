@@ -64,15 +64,19 @@ static void search_hooks(const struct nf_hook_entries *e){
 	}
 }
 
-#else
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4,9,0))
 
-static void search_hooks(const struct list_head *hook_list){
+static void search_hooks(const struct nf_hook_entry *hook_list){
 	const char *mod_name;
 	unsigned long addr;
 	struct module *mod;
 	struct nf_hook_ops *elem;
+	struct nf_hook_entry *cur_hook_entry = NULL;
 
-	list_for_each_entry(elem, hook_list, list){
+	cur_hook_entry = (struct nf_hook_entry *) hook_list;
+
+	while(cur_hook_entry) {
+		elem = &cur_hook_entry->ops;
 		addr = (unsigned long)elem->hook;
 		mutex_lock(&module_mutex);
 		mod = get_module_from_addr(addr);
@@ -82,6 +86,30 @@ static void search_hooks(const struct list_head *hook_list){
 			mod_name = find_hidden_module(addr);
 			if (mod_name && !in_module_whitelist(mod_name))
 				ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
+		}
+		mutex_unlock(&module_mutex);
+		cur_hook_entry = cur_hook_entry->next;
+	}
+}
+
+#else
+
+static void search_hooks(const struct list_head *hook_list){
+	const char *mod_name;
+	unsigned long addr;
+	struct module *mod;
+	struct nf_hook_ops *elem;
+
+	list_for_each_entry(elem, hook_list, list){
+	addr = (unsigned long)elem->hook;
+	mutex_lock(&module_mutex);
+	mod = get_module_from_addr(addr);
+	if (mod && !in_module_whitelist(mod->name)){
+		ALERT("Module [%s] controls a Netfilter hook.\n", mod->name);
+	} else {
+		mod_name = find_hidden_module(addr);
+		if (mod_name && !in_module_whitelist(mod_name))
+			ALERT("Module [%s] controls a Netfilter hook.\n", mod_name);
 		}
 		mutex_unlock(&module_mutex);
 	}
@@ -139,12 +167,20 @@ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, int pf
 	return NULL;
 }
 
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4,9,0))
+
+static struct nf_hook_entry *nf_find_hook_list(struct net *net, int pf, unsigned int hooknum){
+	if (pf != NFPROTO_NETDEV)
+		return net->nf.hooks[pf][hooknum];
+	return NULL;
+}
+
 #else
 
-static struct list_head *nf_find_hook_list(struct net *net, int pf, unsigned int hooknum){
-	if (pf != NFPROTO_NETDEV)
-		return &net->nf.hooks[pf][hooknum];
-	return NULL;
+static struct nf_hook_entry *nf_find_hook_list(struct net *net, int pf, unsigned int hooknum){
+    if (pf != NFPROTO_NETDEV)
+        return &net->nf.hooks[pf][hooknum];
+    return NULL;
 }
 
 #endif
@@ -172,6 +208,24 @@ int analyze_netfilter(void){
 		}
 	}
 
+	return 0;
+}
+
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4,9,0))
+
+int analyze_netfilter(void){
+	int i, j;
+	struct nf_hook_entry *hook_list;
+
+	INFO("Analyzing Netfilter Hooks\n");
+
+	for (i = 0; i < NFPROTO_NUMPROTO; i++){
+		for (j = 0; j < NF_MAX_HOOKS; j++){
+			hook_list = nf_find_hook_list(&init_net, i, j);
+			if (hook_list)
+				search_hooks(hook_list);
+		}
+	}
 	return 0;
 }
 
