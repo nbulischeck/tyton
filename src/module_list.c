@@ -14,7 +14,7 @@ const char *find_hidden_module(unsigned long addr){
 	struct kobject *cur, *tmp;
 	struct module_kobject *kobj;
 
-	mod_kset = (void *)kallsyms_lookup_name("module_kset");
+	mod_kset = (void *)lookup_name("module_kset");
 	if (!mod_kset)
 		return NULL;
 
@@ -47,7 +47,7 @@ void analyze_modules(void){
 
 	INFO("Analyzing Module List\n");
 
-	mod_kset = (void *)kallsyms_lookup_name("module_kset");
+	mod_kset = (void *)lookup_name("module_kset");
 	if (!mod_kset)
 		return;
 
