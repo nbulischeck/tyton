@@ -41,15 +41,23 @@ void exit_del_workqueue(void){
 	cancel_delayed_work_sync(&work);
 }
 
-static void init_kernel_syms(void){
+static int init_kernel_syms(void){
 	idt = (void *)lookup_name("idt_table");
 	sct = (void *)lookup_name("sys_call_table");
 	ckt = (void *)lookup_name("core_kernel_text");
+
+	if (!idt || !sct || !ckt)
+		return -1;
+
+	return 0;
 }
 
 static int __init init_mod(void){
 	INFO("Inserting Module\n");
-	init_kernel_syms();
+	if (init_kernel_syms() < 0){
+		ERROR("Failed to lookup symbols\n");
+		return -1;
+	}
 	init_del_workqueue();
 	return 0;
 }
