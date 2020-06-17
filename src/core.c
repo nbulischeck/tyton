@@ -1,6 +1,7 @@
 #include <linux/workqueue.h>
 
 #include "core.h"
+#include "util.h"
 #include "proc.h"
 #include "logger.h"
 #include "module_list.h"
@@ -41,9 +42,9 @@ void exit_del_workqueue(void){
 }
 
 static void init_kernel_syms(void){
-	idt = (void *)kallsyms_lookup_name("idt_table");
-	sct = (void *)kallsyms_lookup_name("sys_call_table");
-	ckt = (void *)kallsyms_lookup_name("core_kernel_text");
+	idt = (void *)lookup_name("idt_table");
+	sct = (void *)lookup_name("sys_call_table");
+	ckt = (void *)lookup_name("core_kernel_text");
 }
 
 static int __init init_mod(void){
